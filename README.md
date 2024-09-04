@@ -7,6 +7,7 @@ This project involves a comprehensive analysis of RNA sequence data. The data ut
 ### Scientific Question
 
 The central scientific question of this project is: **"Of genes that are expressed differently between MS subjects and healthy controls, does IFN-beta treatment cause gene expression to align more closely with healthy controls?"**
+The goal is to identify genes that are expressed differently between MS subjects and controls, then analyze whether the gene expressions get closer to "normal" under treatment. 
 
 ## Data Description
 The dataset used can be found at: 
