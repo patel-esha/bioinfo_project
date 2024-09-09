@@ -1,21 +1,19 @@
-# Bioinformatics Research Topic: Interferon-β and Gene Regulation in MS
+# Bioinformatics Research Topic: Distinguishing HAM/TSP pations from Controls and MS patients based on T-cell receptor signature.
 
 ## Project Overview
 
-This project involves a comprehensive analysis of RNA sequence data. The data utilized for this analysis has been sourced from the experiment titled "Interferon-β corrects massive gene dysregulation in multiple sclerosis: Short-term and long-term effects on immune regulation and neuroprotection," available on refine.bio.
+This project involves a comprehensive analysis of RNA sequence data. The data utilized for this analysis has been sourced from the experiment titled "Comprehensive Analysis of TCR-ß Repertoire in Patients with Neurological Immune-mediated Disorders" available on refine.bio.
 
 ### Scientific Question
 
-The central scientific question of this project is: **"Of genes that are expressed differently between MS subjects and healthy controls, does IFN-beta treatment cause gene expression to align more closely with healthy controls?"**
-The goal is to identify genes that are expressed differently between MS subjects and controls, then analyze whether the gene expressions get closer to "normal" under treatment. 
+The central scientific question of this project is: **"Do MS and HAM/TSP subjects have more similarities in gene expression than either of them with HC"**
+The goal is to identify T-cell receptor signatures that are expressed differently between HAM/TSP, MS subjects and controls. 
 
 ## Data Description
 The dataset used can be found at: 
-https://www.refine.bio/experiments/GSE138064/interferon-corrects-massive-gene-dysregulation-in-multiple-sclerosis-short-term-and-long-term-effects-on-immune-regulation-and-neuroprotection
+https://www.refine.bio/experiments/SRP164913/comprehensive-analysis-of-tcr-s-repertoire-in-patients-with-neurological-immune-mediated-disorders
 
-It includes RNA-seq data taken from mononuclear cells from subjects injected with IFN-β, a cytokine, four days prior. The experiment groups are: IFN-β-treated MS Complete Responders (CR) stable for five years, stable and active Partial Responders (PR), stable and active untreated MS, and healthy controls. 
-
-
+It includes RNA-seq data from TCR-$\beta$ profiles for 68 human samples. The experiment groups are: 18 HAM/TSP samples, 34 MS samples and 20 Controls samples.
 
 
 ## Methodology
