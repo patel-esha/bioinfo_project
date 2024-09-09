@@ -13,7 +13,7 @@ The goal is to identify T-cell receptor signatures that are expressed differentl
 The dataset used can be found at: 
 https://www.refine.bio/experiments/SRP164913/comprehensive-analysis-of-tcr-s-repertoire-in-patients-with-neurological-immune-mediated-disorders
 
-It includes RNA-seq data from TCR-$\beta$ profiles for 68 human samples. The experiment groups are: 18 HAM/TSP samples, 34 MS samples and 20 Controls samples.
+It includes RNA-seq data from TCR-$`\beta`$ profiles for 68 human samples. The experiment groups are: 18 HAM/TSP samples, 34 MS samples and 20 Controls samples.
 
 
 ## Methodology
