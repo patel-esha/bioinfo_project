@@ -1,0 +1,89 @@
+refinebio_accession_code	experiment_accession	refinebio_age	refinebio_cell_line	refinebio_compound	refinebio_developmental_stage	refinebio_disease	refinebio_disease_stage	refinebio_genetic_information	refinebio_organism	refinebio_platform	refinebio_processed	refinebio_processor_id	refinebio_processor_name	refinebio_processor_version	refinebio_race	refinebio_sex	refinebio_source_archive_url	refinebio_source_database	refinebio_specimen_part	refinebio_subject	refinebio_time	refinebio_title	refinebio_treatment
+SRR7993430	SRP164913	46.000				hc			HOMO_SAPIENS	Illumina HiSeq 2500 (IlluminaHiSeq2500)	True	387	Tximport	v1.26.0-hotfix	african-american	female		SRA	pbmc	pbmc		HC_S3_PBMC_L1	
+SRR7993431	SRP164913	47.000				hc			HOMO_SAPIENS	Illumina HiSeq 2500 (IlluminaHiSeq2500)	True	387	Tximport	v1.26.0-hotfix	african-american	female		SRA	pbmc	pbmc		HC_S3_PBMC_L2	
+SRR7993432	SRP164913	48.000				hc			HOMO_SAPIENS	Illumina HiSeq 2500 (IlluminaHiSeq2500)	True	387	Tximport	v1.26.0-hotfix	african-american	female		SRA	pbmc	pbmc		HC_S3_PBMC_L3	
+SRR7993433	SRP164913	72.000				hc			HOMO_SAPIENS	Illumina HiSeq 2500 (IlluminaHiSeq2500)	True	387	Tximport	v1.26.0-hotfix	caucasian	female		SRA	pbmc	pbmc		HC_S4_PBMC	
+SRR7993435	SRP164913	43.000				hc			HOMO_SAPIENS	Illumina HiSeq 2500 (IlluminaHiSeq2500)	True	387	Tximport	v1.26.0-hotfix	african-american	male		SRA	pbmc	pbmc		HC_S6_PBMC	
+SRR7993436	SRP164913	43.000				hc			HOMO_SAPIENS	Illumina HiSeq 2500 (IlluminaHiSeq2500)	True	387	Tximport	v1.26.0-hotfix	african-american	female		SRA	pbmc	pbmc		HC_S7_PBMC	
+SRR7993437	SRP164913	46.000				hc			HOMO_SAPIENS	Illumina HiSeq 2500 (IlluminaHiSeq2500)	True	387	Tximport	v1.26.0-hotfix	caucasian	female		SRA	pbmc	pbmc		HC_S8_PBMC	
+SRR7993438	SRP164913	33.000				hc			HOMO_SAPIENS	Illumina HiSeq 2500 (IlluminaHiSeq2500)	True	387	Tximport	v1.26.0-hotfix	caucasian	male		SRA	pbmc	pbmc		HC_S9_PBMC_L1	
+SRR7993439	SRP164913	34.000				hc			HOMO_SAPIENS	Illumina HiSeq 2500 (IlluminaHiSeq2500)	True	387	Tximport	v1.26.0-hotfix	caucasian	male		SRA	pbmc	pbmc		HC_S9_PBMC_L2	
+SRR7993440	SRP164913	35.000				hc			HOMO_SAPIENS	Illumina HiSeq 2500 (IlluminaHiSeq2500)	True	387	Tximport	v1.26.0-hotfix	caucasian	male		SRA	pbmc	pbmc		HC_S9_PBMC_L3	
+SRR7993441	SRP164913	60.000				hc			HOMO_SAPIENS	Illumina HiSeq 2500 (IlluminaHiSeq2500)	True	387	Tximport	v1.26.0-hotfix	caucasian	male		SRA	pbmc	pbmc		HC_S10_PBMC	
+SRR7993442	SRP164913	68.000				hc			HOMO_SAPIENS	Illumina HiSeq 2500 (IlluminaHiSeq2500)	True	387	Tximport	v1.26.0-hotfix	caucasian	male		SRA	pbmc	pbmc		HC_S11_PBMC	
+SRR7993443	SRP164913	66.000				hc			HOMO_SAPIENS	Illumina HiSeq 2500 (IlluminaHiSeq2500)	True	387	Tximport	v1.26.0-hotfix	caucasian	female		SRA	pbmc	pbmc		HC_S12_PBMC	
+SRR7993444	SRP164913	57.000				hc			HOMO_SAPIENS	Illumina HiSeq 2500 (IlluminaHiSeq2500)	True	387	Tximport	v1.26.0-hotfix	caucasian	male		SRA	pbmc	pbmc		HC_S13_PBMC	
+SRR7993445	SRP164913	57.000				hc			HOMO_SAPIENS	Illumina HiSeq 2500 (IlluminaHiSeq2500)	True	387	Tximport	v1.26.0-hotfix	caucasian	female		SRA	pbmc	pbmc		HC_S14_PBMC	
+SRR7993447	SRP164913	59.000				hc			HOMO_SAPIENS	Illumina HiSeq 2500 (IlluminaHiSeq2500)	True	387	Tximport	v1.26.0-hotfix	caucasian	male		SRA	cd4 t cell	cd4		HC_S16_CD4	
+SRR7993448	SRP164913	59.000				hc			HOMO_SAPIENS	Illumina HiSeq 2500 (IlluminaHiSeq2500)	True	387	Tximport	v1.26.0-hotfix	caucasian	male		SRA	cd8 t cell	cd8		HC_S16_CD8	
+SRR7993449	SRP164913	59.000				hc			HOMO_SAPIENS	Illumina HiSeq 2500 (IlluminaHiSeq2500)	True	387	Tximport	v1.26.0-hotfix	caucasian	male		SRA	pbmc	pbmc		HC_S16_PBMC	
+SRR7993450	SRP164913	43.000				hc			HOMO_SAPIENS	Illumina HiSeq 2500 (IlluminaHiSeq2500)	True	387	Tximport	v1.26.0-hotfix	caucasian	female		SRA	cd4 t cell	cd4		HC_S17_CD4	
+SRR7993451	SRP164913	43.000				hc			HOMO_SAPIENS	Illumina HiSeq 2500 (IlluminaHiSeq2500)	True	387	Tximport	v1.26.0-hotfix	caucasian	female		SRA	cd8 t cell	cd8		HC_S17_CD8	
+SRR7993452	SRP164913	43.000				hc			HOMO_SAPIENS	Illumina HiSeq 2500 (IlluminaHiSeq2500)	True	387	Tximport	v1.26.0-hotfix	caucasian	female		SRA	pbmc	pbmc		HC_S17_PBMC	
+SRR7993454	SRP164913	29.000				hc			HOMO_SAPIENS	Illumina HiSeq 2500 (IlluminaHiSeq2500)	True	387	Tximport	v1.26.0-hotfix	unknown	male		SRA	cd8 t cell	cd8		HC_S18_CD8	
+SRR7993455	SRP164913	29.000				hc			HOMO_SAPIENS	Illumina HiSeq 2500 (IlluminaHiSeq2500)	True	387	Tximport	v1.26.0-hotfix	unknown	male		SRA	pbmc	pbmc		HC_S18_PBMC	
+SRR7993457	SRP164913	49.000				hc			HOMO_SAPIENS	Illumina HiSeq 2500 (IlluminaHiSeq2500)	True	387	Tximport	v1.26.0-hotfix	unknown	female		SRA	cd8 t cell	cd8		HC_S19_CD8	
+SRR7993458	SRP164913	49.000				hc			HOMO_SAPIENS	Illumina HiSeq 2500 (IlluminaHiSeq2500)	True	387	Tximport	v1.26.0-hotfix	unknown	female		SRA	pbmc	pbmc		HC_S19_PBMC	
+SRR7993459	SRP164913	56.000				hc			HOMO_SAPIENS	Illumina HiSeq 2500 (IlluminaHiSeq2500)	True	387	Tximport	v1.26.0-hotfix	african-american	female		SRA	cd4 t cell	cd4		HC_S20_CD4	
+SRR7993460	SRP164913	56.000				hc			HOMO_SAPIENS	Illumina HiSeq 2500 (IlluminaHiSeq2500)	True	387	Tximport	v1.26.0-hotfix	african-american	female		SRA	cd8 t cell	cd8		HC_S20_CD8	
+SRR7993461	SRP164913	56.000				hc			HOMO_SAPIENS	Illumina HiSeq 2500 (IlluminaHiSeq2500)	True	387	Tximport	v1.26.0-hotfix	african-american	female		SRA	pbmc	pbmc		HC_S20_PBMC	
+SRR7993462	SRP164913	70.000				ham/tsp			HOMO_SAPIENS	Illumina HiSeq 2500 (IlluminaHiSeq2500)	True	387	Tximport	v1.26.0-hotfix	african-american	male		SRA	pbmc	pbmc		HAM_TSP_S1_PBMC	
+SRR7993464	SRP164913	39.000				ham/tsp			HOMO_SAPIENS	Illumina HiSeq 2500 (IlluminaHiSeq2500)	True	387	Tximport	v1.26.0-hotfix	caucasian	male		SRA	pbmc	pbmc		HAM_TSP_S3_PBMC_L1	
+SRR7993465	SRP164913	40.000				ham/tsp			HOMO_SAPIENS	Illumina HiSeq 2500 (IlluminaHiSeq2500)	True	387	Tximport	v1.26.0-hotfix	caucasian	male		SRA	pbmc	pbmc		HAM_TSP_S3_PBMC_L2	
+SRR7993467	SRP164913	68.000				ham/tsp			HOMO_SAPIENS	Illumina HiSeq 2500 (IlluminaHiSeq2500)	True	387	Tximport	v1.26.0-hotfix	caucasian	female		SRA	pbmc	pbmc		HAM_TSP_S4_PBMC	
+SRR7993468	SRP164913	59.000				ham/tsp			HOMO_SAPIENS	Illumina HiSeq 2500 (IlluminaHiSeq2500)	True	387	Tximport	v1.26.0-hotfix	caucasian	female		SRA	pbmc	pbmc		HAM_TSP_S5_PBMC	
+SRR7993469	SRP164913	49.000				ham/tsp			HOMO_SAPIENS	Illumina HiSeq 2500 (IlluminaHiSeq2500)	True	387	Tximport	v1.26.0-hotfix	african-american	female		SRA	pbmc	pbmc		HAM_TSP_S6_PBMC_L1	
+SRR7993470	SRP164913	49.000				ham/tsp			HOMO_SAPIENS	Illumina HiSeq 2500 (IlluminaHiSeq2500)	True	387	Tximport	v1.26.0-hotfix	african-american	female		SRA	pbmc	pbmc		HAM_TSP_S6_PBMC_L2	
+SRR7993471	SRP164913	51.000				ham/tsp			HOMO_SAPIENS	Illumina HiSeq 2500 (IlluminaHiSeq2500)	True	387	Tximport	v1.26.0-hotfix	african-american	female		SRA	pbmc	pbmc		HAM_TSP_S6_PBMC_L3	
+SRR7993472	SRP164913	66.000				ham/tsp			HOMO_SAPIENS	Illumina HiSeq 2500 (IlluminaHiSeq2500)	True	387	Tximport	v1.26.0-hotfix	caucasian	male		SRA	pbmc	pbmc		HAM_TSP_S7_PBMC_T1	
+SRR7993473	SRP164913	66.000				ham/tsp			HOMO_SAPIENS	Illumina HiSeq 2500 (IlluminaHiSeq2500)	True	387	Tximport	v1.26.0-hotfix	caucasian	male		SRA	pbmc	pbmc		HAM_TSP_S7_PBMC_T2	
+SRR7993474	SRP164913	66.000				ham/tsp			HOMO_SAPIENS	Illumina HiSeq 2500 (IlluminaHiSeq2500)	True	387	Tximport	v1.26.0-hotfix	caucasian	male		SRA	pbmc	pbmc		HAM_TSP_S7_PBMC_T3	
+SRR7993476	SRP164913	49.000				ham/tsp			HOMO_SAPIENS	Illumina HiSeq 2500 (IlluminaHiSeq2500)	True	387	Tximport	v1.26.0-hotfix	african-american	female		SRA	pbmc	pbmc		HAM_TSP_S9_PBMC	
+SRR7993477	SRP164913	59.000				ham/tsp			HOMO_SAPIENS	Illumina HiSeq 2500 (IlluminaHiSeq2500)	True	387	Tximport	v1.26.0-hotfix	unknown	male		SRA	cd4 t cell	cd4		HAM_TSP_S10_CD4	
+SRR7993478	SRP164913	59.000				ham/tsp			HOMO_SAPIENS	Illumina HiSeq 2500 (IlluminaHiSeq2500)	True	387	Tximport	v1.26.0-hotfix	unknown	male		SRA	cd8 t cell	cd8		HAM_TSP_S10_CD8	
+SRR7993479	SRP164913	59.000				ham/tsp			HOMO_SAPIENS	Illumina HiSeq 2500 (IlluminaHiSeq2500)	True	387	Tximport	v1.26.0-hotfix	unknown	male		SRA	pbmc	pbmc		HAM_TSP_S10_PBMC	
+SRR7993480	SRP164913	62.000				ham/tsp			HOMO_SAPIENS	Illumina HiSeq 2500 (IlluminaHiSeq2500)	True	387	Tximport	v1.26.0-hotfix	african-american	female		SRA	cd4 t cell	cd4		HAM_TSP_S11_CD4	
+SRR7993481	SRP164913	62.000				ham/tsp			HOMO_SAPIENS	Illumina HiSeq 2500 (IlluminaHiSeq2500)	True	387	Tximport	v1.26.0-hotfix	african-american	female		SRA	cd8 t cell	cd8		HAM_TSP_S11_CD8	
+SRR7993482	SRP164913	62.000				ham/tsp			HOMO_SAPIENS	Illumina HiSeq 2500 (IlluminaHiSeq2500)	True	387	Tximport	v1.26.0-hotfix	african-american	female		SRA	pbmc	pbmc		HAM_TSP_S11_PBMC	
+SRR7993486	SRP164913	29.000				ham/tsp			HOMO_SAPIENS	Illumina HiSeq 2500 (IlluminaHiSeq2500)	True	387	Tximport	v1.26.0-hotfix	caucasian	female		SRA	cd8 t cell	cd8		HAM_TSP_S12_CD8	
+SRR7993487	SRP164913	29.000				ham/tsp			HOMO_SAPIENS	Illumina HiSeq 2500 (IlluminaHiSeq2500)	True	387	Tximport	v1.26.0-hotfix	caucasian	female		SRA	pbmc	pbmc		HAM_TSP_S12_PBMC	
+SRR7993488	SRP164913	60.000				ham/tsp			HOMO_SAPIENS	Illumina HiSeq 2500 (IlluminaHiSeq2500)	True	387	Tximport	v1.26.0-hotfix	unknown	female		SRA	cd4 t cell	cd4		HAM_TSP_S13_CD4	
+SRR7993489	SRP164913	60.000				ham/tsp			HOMO_SAPIENS	Illumina HiSeq 2500 (IlluminaHiSeq2500)	True	387	Tximport	v1.26.0-hotfix	unknown	female		SRA	cd8 t cell	cd8		HAM_TSP_S13_CD8	
+SRR7993490	SRP164913	60.000				ham/tsp			HOMO_SAPIENS	Illumina HiSeq 2500 (IlluminaHiSeq2500)	True	387	Tximport	v1.26.0-hotfix	unknown	female		SRA	pbmc	pbmc		HAM_TSP_S13_PBMC	
+SRR7993491	SRP164913	38.000				ham/tsp			HOMO_SAPIENS	Illumina HiSeq 2500 (IlluminaHiSeq2500)	True	387	Tximport	v1.26.0-hotfix	african-american	female		SRA	cd4 t cell	cd4		HAM_TSP_S14_CD4	
+SRR7993492	SRP164913	38.000				ham/tsp			HOMO_SAPIENS	Illumina HiSeq 2500 (IlluminaHiSeq2500)	True	387	Tximport	v1.26.0-hotfix	african-american	female		SRA	cd8 t cell	cd8		HAM_TSP_S14_CD8	
+SRR7993493	SRP164913	38.000				ham/tsp			HOMO_SAPIENS	Illumina HiSeq 2500 (IlluminaHiSeq2500)	True	387	Tximport	v1.26.0-hotfix	african-american	female		SRA	pbmc	pbmc		HAM_TSP_S14_PBMC	
+SRR7993494	SRP164913	22.000				ms			HOMO_SAPIENS	Illumina HiSeq 2500 (IlluminaHiSeq2500)	True	387	Tximport	v1.26.0-hotfix	african-american	male		SRA	pbmc	pbmc		MS_S1_PBMC	
+SRR7993495	SRP164913	36.000				ms			HOMO_SAPIENS	Illumina HiSeq 2500 (IlluminaHiSeq2500)	True	387	Tximport	v1.26.0-hotfix	african-american	female		SRA	pbmc	pbmc		MS_S2_PBMC	
+SRR7993497	SRP164913	44.000				ms			HOMO_SAPIENS	Illumina HiSeq 2500 (IlluminaHiSeq2500)	True	387	Tximport	v1.26.0-hotfix	caucasian	male		SRA	pbmc	pbmc		MS_S4_PBMC	
+SRR7993499	SRP164913	53.000				ms			HOMO_SAPIENS	Illumina HiSeq 2500 (IlluminaHiSeq2500)	True	387	Tximport	v1.26.0-hotfix	caucasian	male		SRA	pbmc	pbmc		MS_S6_PBMC	
+SRR7993500	SRP164913	30.000				ms			HOMO_SAPIENS	Illumina HiSeq 2500 (IlluminaHiSeq2500)	True	387	Tximport	v1.26.0-hotfix	caucasian	male		SRA	pbmc	pbmc		MS_S7_PBMC	
+SRR7993501	SRP164913	39.000				ms			HOMO_SAPIENS	Illumina HiSeq 2500 (IlluminaHiSeq2500)	True	387	Tximport	v1.26.0-hotfix	caucasian	female		SRA	pbmc	pbmc		MS_S8_PBMC	
+SRR7993502	SRP164913	37.000				ms			HOMO_SAPIENS	Illumina HiSeq 2500 (IlluminaHiSeq2500)	True	387	Tximport	v1.26.0-hotfix	caucasian	female		SRA	pbmc	pbmc		MS_S9_PBMC	
+SRR7993503	SRP164913	50.000				ms			HOMO_SAPIENS	Illumina HiSeq 2500 (IlluminaHiSeq2500)	True	387	Tximport	v1.26.0-hotfix	caucasian	female		SRA	pbmc	pbmc		MS_S10_PBMC	
+SRR7993504	SRP164913	50.000				ms			HOMO_SAPIENS	Illumina HiSeq 2500 (IlluminaHiSeq2500)	True	387	Tximport	v1.26.0-hotfix	african-american	female		SRA	pbmc	pbmc		MS_S11_PBMC	
+SRR7993505	SRP164913	32.000				ms			HOMO_SAPIENS	Illumina HiSeq 2500 (IlluminaHiSeq2500)	True	387	Tximport	v1.26.0-hotfix	caucasian	male		SRA	pbmc	pbmc		MS_S12_PBMC	
+SRR7993506	SRP164913	68.000				ms			HOMO_SAPIENS	Illumina HiSeq 2500 (IlluminaHiSeq2500)	True	387	Tximport	v1.26.0-hotfix	caucasian	female		SRA	pbmc	pbmc		MS_S13_PBMC	
+SRR7993507	SRP164913	50.000				ms			HOMO_SAPIENS	Illumina HiSeq 2500 (IlluminaHiSeq2500)	True	387	Tximport	v1.26.0-hotfix	caucasian	male		SRA	pbmc	pbmc		MS_S14_PBMC	
+SRR7993508	SRP164913	52.000				ms			HOMO_SAPIENS	Illumina HiSeq 2500 (IlluminaHiSeq2500)	True	387	Tximport	v1.26.0-hotfix	caucasian	female		SRA	pbmc	pbmc		MS_S15_PBMC	
+SRR7993509	SRP164913	51.000				ms			HOMO_SAPIENS	Illumina HiSeq 2500 (IlluminaHiSeq2500)	True	387	Tximport	v1.26.0-hotfix	caucasian	male		SRA	pbmc	pbmc		MS_S16_PBMC	
+SRR7993510	SRP164913	26.000				ms			HOMO_SAPIENS	Illumina HiSeq 2500 (IlluminaHiSeq2500)	True	387	Tximport	v1.26.0-hotfix	caucasian	female		SRA	cd4 t cell	cd4		MS_S17_CD4	
+SRR7993512	SRP164913	26.000				ms			HOMO_SAPIENS	Illumina HiSeq 2500 (IlluminaHiSeq2500)	True	387	Tximport	v1.26.0-hotfix	caucasian	female		SRA	pbmc	pbmc		MS_S17_PBMC	
+SRR7993513	SRP164913	43.000				ms			HOMO_SAPIENS	Illumina HiSeq 2500 (IlluminaHiSeq2500)	True	387	Tximport	v1.26.0-hotfix	caucasian	male		SRA	pbmc	pbmc		MS_S18_PBMC	
+SRR7993514	SRP164913	28.000				ms			HOMO_SAPIENS	Illumina HiSeq 2500 (IlluminaHiSeq2500)	True	387	Tximport	v1.26.0-hotfix	caucasian	female		SRA	pbmc	pbmc		MS_S19_PBMC	
+SRR7993515	SRP164913	54.000				ms			HOMO_SAPIENS	Illumina HiSeq 2500 (IlluminaHiSeq2500)	True	387	Tximport	v1.26.0-hotfix	caucasian	male		SRA	pbmc	pbmc		MS_S20_PBMC	
+SRR7993516	SRP164913	56.000				ms			HOMO_SAPIENS	Illumina HiSeq 2500 (IlluminaHiSeq2500)	True	387	Tximport	v1.26.0-hotfix	caucasian	female		SRA	pbmc	pbmc		MS_S21_PBMC	
+SRR7993517	SRP164913	60.000				ms			HOMO_SAPIENS	Illumina HiSeq 2500 (IlluminaHiSeq2500)	True	387	Tximport	v1.26.0-hotfix	caucasian	female		SRA	pbmc	pbmc		MS_S22_PBMC	
+SRR7993518	SRP164913	51.000				ms			HOMO_SAPIENS	Illumina HiSeq 2500 (IlluminaHiSeq2500)	True	387	Tximport	v1.26.0-hotfix	caucasian	female		SRA	pbmc	pbmc		MS_S23_PBMC	
+SRR7993519	SRP164913	52.000				ms			HOMO_SAPIENS	Illumina HiSeq 2500 (IlluminaHiSeq2500)	True	387	Tximport	v1.26.0-hotfix	caucasian	female		SRA	pbmc	pbmc		MS_S24_PBMC	
+SRR7993520	SRP164913	37.000				ms			HOMO_SAPIENS	Illumina HiSeq 2500 (IlluminaHiSeq2500)	True	387	Tximport	v1.26.0-hotfix	caucasian	female		SRA	pbmc	pbmc		MS_S25_PBMC	
+SRR7993521	SRP164913	36.000				ms			HOMO_SAPIENS	Illumina HiSeq 2500 (IlluminaHiSeq2500)	True	387	Tximport	v1.26.0-hotfix	african-american	female		SRA	pbmc	pbmc		MS_S26_PBMC	
+SRR7993522	SRP164913	63.000				ms			HOMO_SAPIENS	Illumina HiSeq 2500 (IlluminaHiSeq2500)	True	387	Tximport	v1.26.0-hotfix	caucasian	female		SRA	pbmc	pbmc		MS_S27_PBMC_L1	
+SRR7993524	SRP164913	63.000				ms			HOMO_SAPIENS	Illumina HiSeq 2500 (IlluminaHiSeq2500)	True	387	Tximport	v1.26.0-hotfix	caucasian	female		SRA	pbmc	pbmc		MS_S27_PBMC_L3	
+SRR7993525	SRP164913	62.000				ms			HOMO_SAPIENS	Illumina HiSeq 2500 (IlluminaHiSeq2500)	True	387	Tximport	v1.26.0-hotfix	caucasian	male		SRA	pbmc	pbmc		MS_S28_PBMC	
+SRR7993526	SRP164913	36.000				ms			HOMO_SAPIENS	Illumina HiSeq 2500 (IlluminaHiSeq2500)	True	387	Tximport	v1.26.0-hotfix	caucasian	male		SRA	pbmc	pbmc		MS_S29_PBMC	
+SRR7993527	SRP164913	45.000				ms			HOMO_SAPIENS	Illumina HiSeq 2500 (IlluminaHiSeq2500)	True	387	Tximport	v1.26.0-hotfix	caucasian	female		SRA	cd4 t cell	cd4		MS_S30_CD4	
+SRR7993529	SRP164913	45.000				ms			HOMO_SAPIENS	Illumina HiSeq 2500 (IlluminaHiSeq2500)	True	387	Tximport	v1.26.0-hotfix	caucasian	female		SRA	pbmc	pbmc		MS_S30_PBMC	
+SRR7993530	SRP164913	70.000				ms			HOMO_SAPIENS	Illumina HiSeq 2500 (IlluminaHiSeq2500)	True	387	Tximport	v1.26.0-hotfix	caucasian	female		SRA	pbmc	pbmc		MS_S31_PBMC	
+SRR7993532	SRP164913	30.000				ms			HOMO_SAPIENS	Illumina HiSeq 2500 (IlluminaHiSeq2500)	True	387	Tximport	v1.26.0-hotfix	caucasian	female		SRA	pbmc	pbmc		MS_S33_PBMC	
+SRR7993533	SRP164913	38.000				ms			HOMO_SAPIENS	Illumina HiSeq 2500 (IlluminaHiSeq2500)	True	387	Tximport	v1.26.0-hotfix	caucasian	female		SRA	pbmc	pbmc		MS_S34_PBMC	
