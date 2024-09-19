@@ -1,0 +1,24 @@
+## Dependencies
+
+# Install BiocManager
+if (!requireNamespace("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+
+# Install the Zebrafish package
+if (!("org.Hs.eg.db" %in% installed.packages())) {
+  # Install this package if it isn't installed yet
+  BiocManager::install("org.Hs.eg.db", update = FALSE)
+}
+
+# install tidyverse
+install.packages("tidyverse")
+
+# Install devtools from CRAN
+install.packages("devtools")
+
+# Attach the library
+library(org.Hs.eg.db)
+library(AnnotationDbi) 
+
+# We will need this so we can use the pipe: %>%
+library(magrittr)
