@@ -1,5 +1,8 @@
 ## Dependencies
 
+# Install Rmarkdown
+install.packages("rmarkdown")
+
 # Install BiocManager
 if (!requireNamespace("BiocManager", quietly = TRUE))
     install.packages("BiocManager")
@@ -22,3 +25,7 @@ library(AnnotationDbi)
 
 # We will need this so we can use the pipe: %>%
 library(magrittr)
+
+# Install ggplot2
+library(ggplot2)
+

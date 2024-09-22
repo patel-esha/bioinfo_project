@@ -1,0 +1,26 @@
+---
+title: "Assignment 1 Task 1.c"
+output: html_notebook
+---
+
+Load the HUGO mapped data.
+```{r}
+df <- read.delim("../../data/SRP164913/SRP164913_HUGO.tsv",header = TRUE, row.names = 1, stringsAsFactors = FALSE)
+cat("Number of Genes in the expression matrix: ", dim(df)[1], "\n")
+cat("Number of Samples in the expression matrix: ", dim(df)[2], "\n")
+```
+
+# Density Plot of Gene Expressions
+
+```{R}
+# Log scale the data, +1 to prevent undefined values for 0.
+log_df <- log2(df+1)
+# Get the median of expressions by gene
+gene_median <- apply(df, 1, median)
+cat("Variance between gene expression medians:", var(gene_median))
+# Create a Data frame from the numerical array
+gene_median_df <- data.frame(Median = gene_median)
+# Plot the values
+ggplot(gene_median_df, aes(x = Median)) + geom_density(n = 256) + ylim(0,4) + xlab("Gene Expression Count")
+```
+The density plot shows a Righ Skewed distribution of gene Expression counts with most of the expressions being between zero and fifty but with a few outliers around 90, 120 and 200 expressions.

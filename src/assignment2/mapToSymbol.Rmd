@@ -90,8 +90,8 @@ collapsed_mapped_df %>%
   head()
   
 # keep only the first mapping
-final_mapped_df <- data.frame(
-  "first_mapped_symbol_id" = mapIds(
+merge_mapped_df <- data.frame(
+  "Symbol" = mapIds(
     org.Hs.eg.db,
     keys = expression_df$Gene,
     keytype = "ENSEMBL",
@@ -101,14 +101,23 @@ final_mapped_df <- data.frame(
 ) %>%
   # Make an `Ensembl` column to store the rownames
   tibble::rownames_to_column("Ensembl") %>%
+  # Remove all rows where Symbol is empty
+  dplyr::filter(!is.na(Symbol) & Symbol != "") %>%
   # Add the multiple mappings data from `collapsed_mapped_df` using Ensembl IDs
   dplyr::inner_join(collapsed_mapped_df, by = "Ensembl") %>%
   # Now let's add on the rest of the expression data
   dplyr::inner_join(expression_df, by = c("Ensembl" = "Gene"))
   
+# Aggregate all duplicated symbols by taking the median of their expression values
+final_merged_df <- aggregate(. ~ Symbol, data = final_mapped_df, FUN = median, na.rm = TRUE)
 
-  # Write mapped and annotated data frame to output file
-readr::write_tsv(final_mapped_df, file.path(
+# Set Symbol as identifier column
+rownames(final) <- final_merged_df$Symbol
+
+
+# Write mapped and annotated data frame to output file
+readr::write_tsv(final, file.path(
   data_dir,
-  "SRP164913_HUGO.tsv" # Replace with a relevant output file name
+  "SRP164913_HUGO.tsv"
 ))
+
