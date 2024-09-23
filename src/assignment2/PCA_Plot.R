@@ -2,8 +2,8 @@
 data_dir <- file.path("data", "SRP164913")
 data_file <- file.path(data_dir, "SRP164913_HUGO.tsv")
 metadata_file <- file.path(data_dir, "metadata_SRP164913.tsv")
-results_dir <- file.path("results_dir")
-plots_dir <- file.path("plots_dir")
+results_dir <- file.path("results")
+plots_dir <- file.path("plots")
 
 # Check if the gene expression matrix file is at the path stored in `hugo_data_file`
 file.exists(data_file)
