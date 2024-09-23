@@ -19,6 +19,7 @@ if (!("DESeq2" %in% installed.packages())) {
 library(DESeq2)
 # Attach the `ggplot2` library for plotting
 library(ggplot2)
+library(magrittr)
 # Set the seed so our results are reproducible:
 set.seed(12345)
 
@@ -27,7 +28,7 @@ metadata <- readr::read_tsv(metadata_file)
 # Read in data TSV file
 expression_df <- readr::read_tsv(data_file) #%>%
 # Tuck away the gene ID column as row names, leaving only numeric values
-  #tibble::column_to_rownames("Gene")
+#tibble::column_to_rownames("Gene")
 # Make the sure the columns (samples) are in the same order as the metadata
 expression_df <- expression_df %>%
   dplyr::select(metadata$refinebio_accession_code)
@@ -45,7 +46,7 @@ metadata <- metadata %>%
   )
 
 #add 1 to everything for rounding purposes?
-expression_df <- expression_df + 1
+expression_df <- log2(expression_df + 1)
 
 #Define a minimum counts cutoff and filter the data to include
 # only rows (genes) that have total counts above the cutoff
@@ -61,7 +62,8 @@ dds <- DESeqDataSetFromMatrix(
 )
 # Normalize and transform the data in the `DESeqDataSet` object
 # using the `vst()` function from the `DESeq2` R package
-dds_norm <- vst(dds)
+orows <- sum( rowMeans( counts(dds, normalized=FALSE)) > 5 )
+dds_norm <- vst(dds, nsub=20)
 plotPCA(
   dds_norm,
   intgroup = "refinebio_disease"
@@ -100,3 +102,26 @@ ggsave(
   file.path(plots_dir, "SRP164913_pca_plot.png"),
   plot = annotated_pca_plot # the plot object that we want saved to file
 )
+
+#----------------------------------------------------------------------------
+#if (!require("BiocManager", quietly = TRUE))
+#  install.packages("BiocManager")
+# The following initializes usage of Bioc devel
+#BiocManager::install(version='devel')
+
+#BiocManager::install("M3C")
+#library(M3C)
+
+#data(expression_df)
+#tsne(expression_df$SRR7993430, colvec=c('gold'))
+
+#---------------------------------------------------------------------------
+#UMAP
+#expression.names <- expression_df[, grep("Ensembl|first_mapped_symbol_id|all_symbol_ids", colnames(expression_df))]
+#expression.data <- expression_df[, grep("SRR", colnames(expression_df))]
+#print(expression.names)
+#expression.data
+
+#library(umap)
+#expression.umap <- umap(expression.data)
+#expression.umap
