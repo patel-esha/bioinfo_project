@@ -35,6 +35,16 @@ expression_df <- expression_df %>%
 # Check if this is in the same order
 all.equal(colnames(expression_df), metadata$refinebio_accession_code)
 
+#Remove ham/tsp data
+culledMeta <- metadata[!(metadata$refinebio_disease=="ham/tsp"),]
+discardColumns <- metadata[(metadata$refinebio_disease=="ham/tsp"),]
+discardColumns = as.vector(discardColumns$refinebio_accession_code)
+metadata <- culledMeta
+length(discardColumns)
+#Preserve only columns in expression_df that match one of the accession ids
+expression_df = expression_df[,!(names(expression_df) %in% discardColumns)]
+
+
 # convert the columns we will be using for annotation into factors
 metadata <- metadata %>%
   dplyr::mutate(
@@ -45,12 +55,9 @@ metadata <- metadata %>%
     )
   )
 
-#add 1 to everything for rounding purposes?
-expression_df <- log2(expression_df + 1)
-
 #Define a minimum counts cutoff and filter the data to include
 # only rows (genes) that have total counts above the cutoff
-filtered_expression_df <- expression_df %>%
+filtered_expression_df <- culled_expression_df %>%
   dplyr::filter(rowSums(.) >= 5)
 # The `DESeqDataSetFromMatrix()` function needs the values to be integers
 filtered_expression_df <- round(filtered_expression_df)
@@ -117,11 +124,27 @@ ggsave(
 
 #---------------------------------------------------------------------------
 #UMAP
-#expression.names <- expression_df[, grep("Ensembl|first_mapped_symbol_id|all_symbol_ids", colnames(expression_df))]
-#expression.data <- expression_df[, grep("SRR", colnames(expression_df))]
-#print(expression.names)
-#expression.data
 
-#library(umap)
-#expression.umap <- umap(expression.data)
-#expression.umap
+library("umap")
+
+gene <- DESeqDataSetFromMatrix(
+  countData = filtered_expression_df,
+  colData = metadata,
+  design = ~refinebio_disease
+)
+norm <- vst(gene, nsub=100)
+normalized_counts <- assay(norm) %>%
+  t() # transpose, row -> sample
+results <- umap::umap(normalized_counts)
+umap_plot <- data.frame(results$layout) %>%
+  tibble::rownames_to_column("refinebio_accession_code") %>%
+  dplyr::inner_join(metadata, by = "refinebio_accession_code")
+ggplot(
+  umap_plot,
+  aes(
+    x = X1,
+    y = X2,
+    color = refinebio_disease
+  )
+) +
+  geom_point()
