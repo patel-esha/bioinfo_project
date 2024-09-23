@@ -105,7 +105,6 @@ deseq_df <- deseq_results %>%
   dplyr::arrange(dplyr::desc(log2FoldChange))
 
 head(deseq_df)
-
 plotCounts(ddset, gene = "LINC01317", intgroup = "disease_status")
 
 readr::write_tsv(
@@ -115,6 +114,19 @@ readr::write_tsv(
     "SRP164913_diff_expr_results.tsv" 
   )
 )
+
+#get top 50 to save as file
+top_50 = top_n(deseq_df, 50, wt=log2FoldChange)
+head(top_50)
+#save to file
+readr::write_tsv(
+  top_50,
+  file.path(
+    results_dir, 
+    "SRP164913_diff_expr_top_50_results.tsv"
+  )
+)
+
 
 # We'll assign this as `volcano_plot`
 volcano_plot <- EnhancedVolcano::EnhancedVolcano(
