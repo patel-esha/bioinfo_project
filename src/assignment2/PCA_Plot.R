@@ -1,13 +1,12 @@
 # Define the file paths 
 data_dir <- file.path("data", "SRP164913")
-raw_data_file <- file.path(data_dir, "SRP164913.tsv")
-hugo_data_file <- file.path(data_dir, "SRP164913_HUGO.tsv")
+data_file <- file.path(data_dir, "SRP164913_HUGO.tsv")
 metadata_file <- file.path(data_dir, "metadata_SRP164913.tsv")
 results_dir <- file.path("results_dir")
 plots_dir <- file.path("plots_dir")
 
 # Check if the gene expression matrix file is at the path stored in `hugo_data_file`
-file.exists(hugo_data_file)
+file.exists(data_file)
 # Check if the metadata file is at the file path stored in `metadata_file`
 file.exists(metadata_file)
 
@@ -26,9 +25,9 @@ set.seed(12345)
 # Read in metadata TSV file
 metadata <- readr::read_tsv(metadata_file)
 # Read in data TSV file
-expression_df <- readr::read_tsv(hugo_data_file) %>%
+expression_df <- readr::read_tsv(data_file) #%>%
 # Tuck away the gene ID column as row names, leaving only numeric values
-  tibble::column_to_rownames("Gene")
+  #tibble::column_to_rownames("Gene")
 # Make the sure the columns (samples) are in the same order as the metadata
 expression_df <- expression_df %>%
   dplyr::select(metadata$refinebio_accession_code)
@@ -41,9 +40,13 @@ metadata <- metadata %>%
     refinebio_disease = factor(
       refinebio_disease,
       # specify the possible levels in the order we want them to appear
-      levels = c("ham/tsp", "hc", "ms")
+      levels = c("hc", "ms", "ham/tsp")
     )
   )
+
+#add 1 to everything for rounding purposes?
+expression_df <- expression_df + 1
+
 #Define a minimum counts cutoff and filter the data to include
 # only rows (genes) that have total counts above the cutoff
 filtered_expression_df <- expression_df %>%
