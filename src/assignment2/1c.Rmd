@@ -14,7 +14,9 @@ cat("Number of Samples in the expression matrix: ", dim(df)[2], "\n")
 
 ```{R}
 # Log scale the data, +1 to prevent undefined values for 0.
-log_df <- log2(df+1)
+head(df)
+log_df <- log(df+1)
+head(log_df)
 # Get the median of expressions by gene
 gene_median <- apply(df, 1, median)
 cat("Variance between gene expression medians:", var(gene_median))

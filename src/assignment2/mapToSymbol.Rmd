@@ -112,8 +112,7 @@ merge_mapped_df <- data.frame(
 final_merged_df <- aggregate(. ~ Symbol, data = final_mapped_df, FUN = median, na.rm = TRUE)
 
 # Set Symbol as identifier column
-rownames(final) <- final_merged_df$Symbol
-
+rownames(final_merged_df) <- final_merged_df$Symbol
 
 # Write mapped and annotated data frame to output file
 readr::write_tsv(final, file.path(
