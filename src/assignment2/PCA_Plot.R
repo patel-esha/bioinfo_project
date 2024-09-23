@@ -111,16 +111,12 @@ ggsave(
 )
 
 #----------------------------------------------------------------------------
-#if (!require("BiocManager", quietly = TRUE))
-#  install.packages("BiocManager")
-# The following initializes usage of Bioc devel
-#BiocManager::install(version='devel')
 
-#BiocManager::install("M3C")
-#library(M3C)
+library(M3C)
 
-#data(expression_df)
-#tsne(expression_df$SRR7993430, colvec=c('gold'))
+data(expression_df)
+tsne(filtered_expression_df, labels=as.factor(metadata$refinebio_disease))
+
 
 #---------------------------------------------------------------------------
 #UMAP

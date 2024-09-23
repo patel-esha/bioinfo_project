@@ -13,6 +13,8 @@ if (!("org.Hs.eg.db" %in% installed.packages())) {
   BiocManager::install("org.Hs.eg.db", update = FALSE)
 }
 
+BiocManager::install("M3C")
+
 # install tidyverse
 install.packages("tidyverse")
 
