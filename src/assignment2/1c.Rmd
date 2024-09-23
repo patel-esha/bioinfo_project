@@ -13,16 +13,13 @@ cat("Number of Samples in the expression matrix: ", dim(df)[2], "\n")
 # Density Plot of Gene Expressions
 
 ```{R}
-# Log scale the data, +1 to prevent undefined values for 0.
-head(df)
-log_df <- log2(df+1)
-head(log_df)
 # Get the median of expressions by gene
-gene_median <- apply(log_df, 1, median)
-cat("Variance between gene expression medians:", var(gene_median))
+gene_median <- apply(df, 1, median)
+head(gene_median)
+cat("Variance between gene expression medians:", var(gene_median, na.rm = TRUE))
 # Create a Data frame from the numerical array
 gene_median_df <- data.frame(Median = gene_median)
 # Plot the values
-ggplot(gene_median_df, aes(x = Median)) + geom_density() + ylim(0,0.01) + xlab("Gene Expression Count")
+ggplot(gene_median_df, aes(x = Median)) + geom_density() + xlab("Gene Expression Count") + scale_x_log10()
 ```
 The density plot shows a Righ Skewed distribution of gene Expression counts with most of the expressions being between zero and fifty but with a few outliers around 90, 120 and 200 expressions.
