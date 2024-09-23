@@ -109,11 +109,13 @@ merge_mapped_df <- data.frame(
   dplyr::inner_join(expression_df, by = c("Ensembl" = "Gene"))
   
 # Aggregate all duplicated symbols by taking the median of their expression values
-final_merged_df <- aggregate(. ~ Symbol, data = final_mapped_df, FUN = median, na.rm = TRUE)
+final_merged_df <- aggregate(. ~ Symbol, data = merge_mapped_df, FUN = median, na.rm = TRUE)
 
 # Set Symbol as identifier column
 rownames(final_merged_df) <- final_merged_df$Symbol
-
+head(final_merged_df)
+final <- subset(final_merged_df, select = -c(Ensembl, all_symbol_ids))
+head(final)
 # Write mapped and annotated data frame to output file
 readr::write_tsv(final, file.path(
   data_dir,
