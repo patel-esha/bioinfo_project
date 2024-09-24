@@ -116,7 +116,7 @@ readr::write_tsv(
 )
 
 #get top 50 to save as file
-top_50 = top_n(deseq_df, 50, wt=log2FoldChange)
+top_50 <- dplyr::top_n(deseq_df, 50, wt=log2FoldChange)
 head(top_50)
 #save to file
 readr::write_tsv(
