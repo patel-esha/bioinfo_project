@@ -39,17 +39,33 @@ for(i in 1:nrow(expression_df)){
 }
 top_50_expression_df <- expression_df[list_i,]
 
+#read in metadata
+metadata <- readr::read_tsv(metadata_file)
+metadata <- metadata %>%
+  dplyr::mutate(
+    refinebio_disease = factor(
+      refinebio_disease,
+      # specify the possible levels in the order we want them to appear
+      levels = c("hc", "ms", "ham/tsp")
+    )
+  )
+
 #create heatmap
+#remove symbol column
+top_50_expression_df$Symbol <- NULL
 expression_matrix <- data.matrix(top_50_expression_df)
+
+#"add a sidebar colored by sample groupings"
+column_ha = HeatmapAnnotation(labels = as.factor(metadata$refinebio_disease))
+
+png("SRP164913_heatmap_plot.png")
 ht <- Heatmap(
   expression_matrix, 
   name="Top 50", 
+  top_annotation = column_ha,
   column_title = "Samples", column_title_side = "bottom", 
-  row_title = "Genes", row_title_side = "right", 
+  row_title = "Genes", row_title_side = "right" ,
   show_column_names = FALSE
 )
 draw(ht)
-
-#"add a sidebar colored by sample groupings"
-#???? what do they meannnn now i gotta sort by metadata? there is no examples for this >:(
-
+dev.off()
