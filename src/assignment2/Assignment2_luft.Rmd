@@ -23,12 +23,12 @@ set.seed(12345)
 ```
 
 **Group:** 5, **Date:** 09/25/2024
-Order to run R scripts: 
-(task 1) preprocessing.R
-(task 2) PCA_Plot.R
-(task 3) DifferentialAnalysis.R
-(task 4) heatmap.R
-(task 5-HAL) gprofiler2.R
+Order to run R scripts: \
+(task 1) preprocessing.R\
+(task 2) PCA_Plot.R\
+(task 3) DifferentialAnalysis.R\
+(task 4) heatmap.R\
+(task 5-Hannah) gprofiler2.R\
 
 ## Task 1 - Data analysis
 ### Sample Size
@@ -55,15 +55,23 @@ ggplot(gene_median_df, aes(x = Median)) + geom_density() + xlab("Gene Expression
 The density plot shows a left skewed distribution of gene expression counts with most of the expressions being between 0 and 10 but with a few outliers between 10 and 15. We downloaded the un-normalized data, however when we opened the raw file, most count values were 0 or very close to 0. We suspect the data came pre-normalized, and this is causing some issues. This carries over through the entire assignment. 
 
 ## Task 2 - Principal Component Analysis
-We were able to get a PCA, tsne, and umap plot following the tutorials. All three show a clear difference between the healthy control (hs) and MS (ms) groups, with a few samples in the midst of the other cluster. The number of crossovers is different. 
+We were able to get a PCA, tsne, and umap plot following the tutorials. All three show a clear difference between the healthy control (hs) and MS (ms) groups, with a few samples in the midst of the other cluster. The number of crossovers is different.
+
 ### PCA Plot
 ![PCA Plot](../../plots/SRP164913_pca_plot.png)
 
+\newpage
+
 ### TSNE Plot
 ![tsne Plot](../../plots/SRP164913_tsne_plot.png)
+
+\newpage
+
 ### UMAP Plot
 ![umap Plot](../../plots/SRP164913_umap_plot.png)
+
 ## Task 3 - Differential Analysis
+
 When we did our differential analysis, because the data was so small and normalized, we had to adjust the filter value to 0.01 or else only ~1000 rows were making it to the DESeqDataSetFromMatrix() step. This was causing our volcano plot to look very sparse. We were able to get a list of the top 50 differentially expressed genes. The results, both the entire table and only the top 50, are stored in the results folder. 
 ```{R}
 top_50_file <- file.path(results_dir, "SRP164913_diff_expr_top_50_results.tsv")
@@ -73,8 +81,11 @@ head(top_50)
 ![Volcano Plot](../../plots/SRP164913_volcano_plot.png)
 The volcano plot, while still somewhat sparse, is far more populated than it was with the highly filtered data. Most significant results have a negative log fold change.  
 
+\newpage
+
 ## Task 4 - Heatmap
 A heatmap was generated for the top 50 differentially expressed genes. The counts for each gene in the top 50 were extracted and put into the heatmap plot. It was annotated with the two disease groups: ms subjects and healthy control subjects. Since many of our counts are 0 and therefore are not expressed differently, the map is largely blue. 
+
 ![Heatmap](../../plots/SRP164913_heatmap_plot.png)
 
 ## Task 5 - Enrichment Analysis
@@ -103,3 +114,8 @@ When I had initially tried to run gost with every gene name, no p-value factor, 
 Unfortunatly, due to the circumstances described above, no table was generated using the gprofiler2 method. 
 
 ## Task 6/7 - Joint Enrichment Analysis Table
+
+## Closing Remarks
+Hannah Luft (me) and Luca Mueller tried to communicate with the rest our team to get this assignment done early because of the fact that each of our Task 5 results needed to be integrated before the end. The other three members of our team were not very responsive, even when we prompted them to find time to meet up, work individually, or just to pay attention to our communication method (Microsoft Teams). When Teams was not working out well, we tried to ask what they would prefer, and they did not offer any alternatives. 
+
+Aside from the communication issues, Luca and I ended up spending many hours trying to figure out the many issues with our dataset and R, and finally figured out 1-4 on our own. With little time remaining and the knowledge they would likely be unable to do 1-4 on their own in time, we asked them to just do their Task 5 method and gave a deadline before the due date so we could compile results. 
