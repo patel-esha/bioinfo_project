@@ -88,25 +88,33 @@ head(top_50)
 ```
 ![Volcano Plot](../../plots/SRP164913_volcano_plot.png)
 ```{r}
-head(gene_list)
-if (!requireNamespace("GenomicSuperSignature", quietly = TRUE)) {
-    install.packages("BiocManager")
-    BiocManager::install("GenomicSuperSignature")
-}
+# Load necessary libraries
+library(readr)
 
-if (!requireNamespace("GenomicFeatures", quietly = TRUE)) {
-    BiocManager::install("GenomicFeatures")
-}
-if (!require("BiocManager", quietly = TRUE))
-    install.packages("BiocManager")
+# Read the differential expression data
+diff_expr_file <- "C:/Users/Esha/Downloads/Assignment2/bioinfo_project/results/SRP164913_diff_expr_results.tsv"
+diff_expr_df <- read_tsv(diff_expr_file)
 
-BiocManager::install("GenomicSuperSignature")
-library(GenomicSuperSignature)
-gene_list <- read.csv("C:/Users/Esha/Downloads/Assignment2/bioinfo_project/results/SRP164913_diff_expr_results.tsv")
-result <- enrichGenomicSuperSignature(SRP164913_diff_expr_results.tsv, gene_list, ontology = "GO")
-print(result)
-enrichment_table <- as.data.frame(result)
-write.csv(enrichment_table, "enrichment_results.csv")
+# Create a grouping variable based on log2FoldChange: 'upregulated' for positive values and 'downregulated' for negative values
+diff_expr_df$group <- ifelse(diff_expr_df$log2FoldChange > 0, "upregulated", "downregulated")
+
+# Filter significant genes based on an adjusted p-value threshold (e.g., < 0.05)
+significant_genes <- diff_expr_df[diff_expr_df$padj < 0.05, ]
+
+# Perform Wilcoxon rank-sum test between two groups ('upregulated' and 'downregulated')
+wilcox_test_results <- wilcox.test(log2FoldChange ~ group, data = significant_genes)
+
+# Print out the results of the Wilcoxon test
+print(wilcox_test_results)
+
+# Optionally, create a table of the results to add to your GitHub repository
+wilcox_results_table <- data.frame(
+  Gene = significant_genes$Gene,
+  p_value = wilcox_test_results$p.value
+)
+
+# View the first few rows of the results
+head(wilcox_results_table)
 
 
 ```
