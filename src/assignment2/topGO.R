@@ -22,7 +22,6 @@ geneList[names(pvals_list)] <- pvals_list
 # Prepare the gene list for topGO by setting non-DE genes p-values to 1 (not significant)
 geneList <- ifelse(is.na(geneList), 1, geneList)
 
-# Create a function to select significant genes based on p-value threshold
 pval_threshold <- 0.05
 geneSelFun <- function(p) p < pval_threshold
 
@@ -68,9 +67,6 @@ colMap <- function(x) {
 }
 gCol <- colMap(gstat$Significant)
 
-fisherVsElim <- plot(pValue.classic, pValue.elim, xlab = "p-value classic", ylab = "p-value elim", pch = 19, cex = gSize, col = gCol)
-
-ggsave(
-  file.path(plots_dir, "SRP164913_topGO_fisher_vs_elim.png"),
-  plot = fisherVsElim
-)
+png(file.path(plots_dir, "SRP164913_topGO_fisher_vs_elim.png"), width = 1200, height = 800)
+plot(pValue.classic, pValue.elim, xlab = "p-value classic", ylab = "p-value elim", pch = 19, cex = gSize, col = gCol)
+dev.off()
