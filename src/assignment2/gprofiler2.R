@@ -71,9 +71,11 @@ gost_res3 <- gost(
   significant=TRUE, 
   organism = "hsapiens"
   ) 
+png("SRP164913_gprofiler_gostplot.png")
 gostplot(gost_res3, capped=TRUE, interactive=FALSE)
+dev.off()
 head(gost_res3$results)
 
 #head of both returns
-publish_gosttable(gost_res2)
+publish_gosttable(gost_res3)
 
