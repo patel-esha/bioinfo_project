@@ -1,5 +1,5 @@
 ---
-title: "Bioinformatics Assignment 2"
+title: "Bioinformatics Assignment 2 - Esha Patel"
 output:
   pdf_document: default
   html_notebook: default
@@ -88,33 +88,103 @@ head(top_50)
 ```
 ![Volcano Plot](../../plots/SRP164913_volcano_plot.png)
 ```{r}
-# Load necessary libraries
+
+# nstalls the libraries (click "a" if you want to update them all) 
+if (!requireNamespace("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+BiocManager::install("clusterProfiler")
+BiocManager::install("org.Hs.eg.db")
+install.packages("readr")
+install.packages("ggplot2")
+install.packages("dplyr")
+
+# mention the libraries
+library(clusterProfiler)
+library(org.Hs.eg.db)
+library(dplyr)
+library(ggplot2)
 library(readr)
 
-# Read the differential expression data
+# Step 1: Load the differential expression gene data (DEG)
 diff_expr_file <- "C:/Users/Esha/Downloads/Assignment2/bioinfo_project/results/SRP164913_diff_expr_results.tsv"
 diff_expr_df <- read_tsv(diff_expr_file)
 
-# Create a grouping variable based on log2FoldChange: 'upregulated' for positive values and 'downregulated' for negative values
+# Step 2: Group by log2FoldChange, so the + is upregulated', - is 'downregulated'
 diff_expr_df$group <- ifelse(diff_expr_df$log2FoldChange > 0, "upregulated", "downregulated")
 
-# Filter significant genes based on an adjusted p-value threshold (e.g., < 0.05)
-significant_genes <- diff_expr_df[diff_expr_df$padj < 0.05, ]
+# Step 3: Keep the statistically significant genes (padj < 0.05)
+significant_genes <- diff_expr_df %>% filter(padj < 0.05)
 
-# Perform Wilcoxon rank-sum test between two groups ('upregulated' and 'downregulated')
+# Step 4: Run the Wilcoxon Rank Sum Test
 wilcox_test_results <- wilcox.test(log2FoldChange ~ group, data = significant_genes)
 
-# Print out the results of the Wilcoxon test
-print(wilcox_test_results)
+# Step 5: The statistics for unregulated vs downregulated
+upregulated <- significant_genes %>% filter(group == "upregulated") %>% pull(log2FoldChange)
+downregulated <- significant_genes %>% filter(group == "downregulated") %>% pull(log2FoldChange)
 
-# Optionally, create a table of the results to add to your GitHub repository
-wilcox_results_table <- data.frame(
-  Gene = significant_genes$Gene,
-  p_value = wilcox_test_results$p.value
+# Calculates the additional statistics (helpful for comprehensiveness)
+calculate_statistics <- function(group) {
+  stats <- list(
+    Mean = mean(group),
+    Median = median(group),
+    Std_Dev = sd(group),
+    Variance = var(group),
+    Min = min(group),
+    Max = max(group),
+    Range = max(group) - min(group),
+    Skewness = sum(((group - mean(group)) / sd(group))^3) / length(group),
+    Kurtosis = sum(((group - mean(group)) / sd(group))^4) / length(group) - 3,
+    IQR = IQR(group),
+    Quartile_1 = quantile(group, 0.25),
+    Quartile_3 = quantile(group, 0.75)
+  )
+  return(stats)
+}
+
+# Computates the statistics from the function ABOVE for unregulated vs regulated so we don't have to call it twice
+upregulated_stats <- calculate_statistics(upregulated)
+downregulated_stats <- calculate_statistics(downregulated)
+
+# Table with the statistics
+results_summary <- data.frame(
+  Statistic = c("Mean", "Median", "Std_Dev", "Variance", "Min", "Max", "Range", "Skewness", "Kurtosis", "IQR", "Quartile_1", "Quartile_3"),
+  Upregulated = unlist(upregulated_stats),
+  Downregulated = unlist(downregulated_stats)
 )
 
-# View the first few rows of the results
-head(wilcox_results_table)
+# The Wilcoxon p-value
+results_summary$P_value_Wilcoxon <- NA
+results_summary$P_value_Wilcoxon[1] <- wilcox_test_results$p.value
 
+# Step 6: Perform Gene enrichment analysis
+gene_symbols <- significant_genes$Gene
+
+# Hugo genes to Entrez IDs
+entrez_ids <- bitr(gene_symbols, fromType = "SYMBOL", toType = "ENTREZID", OrgDb = org.Hs.eg.db)
+
+#  GO enrichment analysis for additional biology
+go_results <- enrichGO(
+  gene = entrez_ids$ENTREZID,
+  OrgDb = org.Hs.eg.db,
+  keyType = "ENTREZID",
+  ont = "BP",
+  pAdjustMethod = "BH",
+  pvalueCutoff = 0.05,
+  qvalueCutoff = 0.05
+)
+
+# See the GO enrichment results
+head(go_results@result)
+
+# Step 7: Results in a different form
+barplot(go_results, showCategory = 10, title = "Top 10 GO Enrichment Terms")
+dotplot(go_results, showCategory = 10, title = "Top 10 GO Enrichment Terms")
+
+# Results in a CSV file
+write.csv(results_summary, "Wilcoxon.csv", row.names = FALSE)
+write.csv(go_results@result, "Enrichment.csv", row.names = FALSE)
+
+# Show the enhanced results summary
+print(results_summary)
 
 ```
