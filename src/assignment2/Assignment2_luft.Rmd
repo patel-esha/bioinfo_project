@@ -113,9 +113,4 @@ When I had initially tried to run gost with every gene name, no p-value factor, 
 
 Unfortunatly, due to the circumstances described above, no table was generated using the gprofiler2 method. 
 
-## Task 6/7 - Joint Enrichment Analysis Table
-
-## Closing Remarks
-Hannah Luft (me) and Luca Mueller tried to communicate with the rest our team to get this assignment done early because of the fact that each of our Task 5 results needed to be integrated before the end. The other three members of our team were not very responsive, even when we prompted them to find time to meet up, work individually, or just to pay attention to our communication method (Microsoft Teams). When Teams was not working out well, we tried to ask what they would prefer, and they did not offer any alternatives. 
-
-Aside from the communication issues, Luca and I ended up spending many hours trying to figure out the many issues with our dataset and R, and finally figured out 1-4 on our own. With little time remaining and the knowledge they would likely be unable to do 1-4 on their own in time, we asked them to just do their Task 5 method and gave a deadline before the due date so we could compile results. 
+## Task 6/7 - Joint Enrichment Analysis 
