@@ -42,7 +42,7 @@ discardColumns = as.vector(discardColumns$refinebio_accession_code)
 metadata <- culledMeta
 length(discardColumns)
 #Preserve only columns in expression_df that match one of the accession ids
-expression_df = expression_df[,!(names(expression_df) %in% discardColumns)]
+culled_expression_df = expression_df[,!(names(expression_df) %in% discardColumns)]
 
 
 # convert the columns we will be using for annotation into factors
@@ -51,7 +51,7 @@ metadata <- metadata %>%
     refinebio_disease = factor(
       refinebio_disease,
       # specify the possible levels in the order we want them to appear
-      levels = c("hc", "ms", "ham/tsp")
+      levels = c("hc", "ms")
     )
   )
 
@@ -114,9 +114,10 @@ ggsave(
 
 library(M3C)
 
-data(expression_df)
+data(filtered_expression_df)
+png("SRP164913_tsne_plot.png")
 tsne(filtered_expression_df, labels=as.factor(metadata$refinebio_disease))
-
+dev.off()
 
 #---------------------------------------------------------------------------
 #UMAP
@@ -135,7 +136,7 @@ results <- umap::umap(normalized_counts)
 umap_plot <- data.frame(results$layout) %>%
   tibble::rownames_to_column("refinebio_accession_code") %>%
   dplyr::inner_join(metadata, by = "refinebio_accession_code")
-ggplot(
+umap_plotted <- ggplot(
   umap_plot,
   aes(
     x = X1,
@@ -144,3 +145,8 @@ ggplot(
   )
 ) +
   geom_point()
+umap_plotted
+ggsave(
+  file.path(plots_dir, "SRP164913_umap_plot.png"),
+  plot = umap_plotted # the plot object that we want saved to file
+)

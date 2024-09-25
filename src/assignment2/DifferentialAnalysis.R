@@ -45,16 +45,27 @@ expression_df <- expression_df %>%
 all.equal(colnames(expression_df), metadata$refinebio_accession_code)
 head(metadata$refinebio_title)
 
+#get rid of ham/tsp
+culledMeta <- metadata[!(metadata$refinebio_disease=="ham/tsp"),]
+discardColumns <- metadata[(metadata$refinebio_disease=="ham/tsp"),]
+discardColumns = as.vector(discardColumns$refinebio_accession_code)
+metadata <- culledMeta
+length(discardColumns)
+#Preserve only columns in expression_df that match one of the accession ids
+culled_expression_df = expression_df[,!(names(expression_df) %in% discardColumns)]
+#check samples match (got rid of ham/tsp people)
+all.equal(colnames(culled_expression_df), metadata$refinebio_accession_code)
+
+
 #extract metadata
 metadata <- metadata %>%
   # Let's get the RPL10 mutation status from this variable
   dplyr::mutate(disease_status = dplyr::case_when(
     stringr::str_detect(refinebio_title, "HC") ~ "healthy",
     stringr::str_detect(refinebio_title, "MS") ~ "ms", 
-    stringr::str_detect(refinebio_title, "HAM") ~ "ham/tsp"
   ))
 # Let's take a look at the original metadata column's info
-# and our new `mutation_status` column
+# and our new `disease_status` column
 dplyr::select(metadata, refinebio_title, disease_status)
 # Print out a preview of `mutation_status`
 str(metadata$disease_status)
@@ -63,15 +74,15 @@ str(metadata$disease_status)
 metadata <- metadata %>%
   dplyr::mutate(
     # Here we define the values our factor variable can have and their order.
-    disease_status = factor(disease_status, levels = c("healthy", "ms", "ham/tsp"))
+    disease_status = factor(disease_status, levels = c("healthy", "ms"))
   )
 
 levels(metadata$disease_status)
 
 # Define a minimum counts cutoff and filter the data to include
 # only rows (genes) that have total counts above the cutoff
-filtered_expression_df <- expression_df %>%
-  dplyr::filter(rowSums(.) >= 10)
+filtered_expression_df <- culled_expression_df %>%
+  dplyr::filter(rowSums(.) >= 0.01)
 # round all expression counts
 gene_matrix <- round(filtered_expression_df)
 ddset <- DESeqDataSetFromMatrix(
@@ -87,7 +98,7 @@ deseq_object <- DESeq(ddset)
 deseq_results <- results(deseq_object)
 deseq_results <- lfcShrink(
   deseq_object, # The original DESeq2 object after running DESeq()
-  coef = 3, # The log fold change coefficient used in DESeq(); the default is 2.
+  coef = 2, # The log fold change coefficient used in DESeq(); the default is 2.
   res = deseq_results # The original DESeq2 results table
 )
 head(deseq_results)

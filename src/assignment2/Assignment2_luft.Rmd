@@ -1,0 +1,126 @@
+---
+title: "Bioinformatics Assignment 2"
+output:
+  pdf_document: default
+  html_notebook: default
+---
+
+```{R}
+# Define file paths
+data_dir <- file.path("../../data", "SRP164913")
+data_file <- file.path(data_dir, "SRP164913_HUGO.tsv")
+metadata_file <- file.path(data_dir, "metadata_SRP164913.tsv")
+results_dir <- file.path("results")
+plots_dir <- file.path("plots")
+
+# Libraries
+library(DESeq2)
+library(ggplot2)
+library(magrittr)
+library(M3C)
+library("umap")
+# Set seed for reproducible results
+set.seed(12345)
+```
+
+**Group:** 5, **Date:** 09/25/2024
+Order to run R scripts: 
+(task 1) preprocessing.R
+(task 2) PCA_Plot.R
+(task 3) DifferentialAnalysis.R
+(task 4) heatmap.R
+(task 5-HAL) gprofiler2.R
+
+## Task 1 - Data analysis
+### Sample Size
+```{r}
+data_analysis_df <- read.delim("../../data/SRP164913/SRP164913_HUGO.tsv",header = TRUE, row.names = 1, stringsAsFactors = FALSE)
+cat("Number of Genes in the expression matrix: ", dim(df)[1], "\n")
+cat("Number of Samples in the expression matrix: ", dim(df)[2], "\n")
+```
+
+### Density Plot of Gene Expressions
+
+```{R}
+# Get the median of expressions by gene
+gene_median <- apply(data_analysis_df, 1, median)
+head(gene_median)
+gene_median = log2(gene_median +1)
+cat("Variance between gene expression medians:", var(gene_median, na.rm = TRUE))
+# Create a Data frame from the numerical array
+gene_median_df <- data.frame(Median = gene_median)
+# Plot the values
+ggplot(gene_median_df, aes(x = Median)) + geom_density() + xlab("Gene Expression Count") + ylim(0,1e-2)
+```
+The density plot shows a left skewed distribution of gene expression counts with most of the expressions being between zero and 5 but with a few outliers between 10 and 15. We downloaded the unnormalized data, however when we opened the raw file, most count values were 0 or very close to 0. We suspect the data came pre-normalized, and this is causing some issues. This carries over through the entire assignment. 
+
+## Task 2 - Principal Component Analysis
+### PCA Plot
+We were able to get a PCA, tsne, and umap plot following the tutorials. [compare them]
+![PCA Plot](../../plots/SRP164913_pca_plot.png)
+
+### TSNE Plot
+
+```{R}
+tsne(filtered_expression_df, labels=as.factor(metadata$refinebio_disease))
+```
+### UMAP Plot
+```{R}
+gene <- DESeqDataSetFromMatrix(
+  countData = filtered_expression_df,
+  colData = metadata,
+  design = ~refinebio_disease
+)
+norm <- vst(gene, nsub=100)
+normalized_counts <- assay(norm) %>%
+  t() # transpose, row -> sample
+results <- umap::umap(normalized_counts)
+umap_plot <- data.frame(results$layout) %>%
+  tibble::rownames_to_column("refinebio_accession_code") %>%
+  dplyr::inner_join(metadata, by = "refinebio_accession_code")
+ggplot(
+  umap_plot,
+  aes(
+    x = X1,
+    y = X2,
+    color = refinebio_disease
+  )
+) +
+  geom_point()
+```
+## Task 3 - Differential Analysis
+When we did our differential analysis, because the data was so small and normalized, we had to adjust the filter and rounding values or else only ~1000 rows were making it to the DESeqDataSetFromMatrix() step. This was causing our volcano plot to look very sparse. We were able to get a list of the top 50 differentially expressed genes.
+```{R}
+head(top_50)
+```
+![Volcano Plot](../../plots/SRP164913_volcano_plot.png)
+
+## Task 4 - Heatmap
+A heatmap was generated for the top 50 differentially expressed genes. The counts for each gene in the top 50 were put into the heatmap plot. It was annotated with the three disease groups: ms subjects, healthy control subjects, and ham/tsp subjects. Since many of our counts are 0 and therefore are not expressed differently, the map is largely blue.  
+![Heatmap](../../plots/SRP164913_heatmap_plot.png)
+
+## Task 5 - Enrichment Analysis
+Hannah- gprofiler2
+The following code was used to generate the enrichment analysis results using gene ontology: 
+```{R}
+expression_df <- readr::read_tsv(data_file)
+gene_list <- as.list(expression_df[1])
+
+#ontology: gene
+#enrichment analysis
+gost_res <- gost(
+  query = gene_list,  #list of gene names (hugo)
+  organism = "hsapiens",  #human species
+  ordered_query = FALSE, #the data is not ordered
+  significant = FALSE, #want everything, not just the statistically significant
+  exclude_iea = TRUE, #true to do gene oncology
+  measure_underrepresentation = FALSE, #don't measure underrepresentation
+  evcodes = FALSE, #
+  user_threshold = 0.05, #default for the pvalue threshold
+  correction_method = "g_SCS", #default multiple testing correction method to reduce false positives
+  domain_scope = "annotated", #only consider annoted genes
+  custom_bg = NULL, 
+  numeric_ns = "", sources = NULL, as_short_link = FALSE, highlight = FALSE
+)
+head(gost_res$result)
+```

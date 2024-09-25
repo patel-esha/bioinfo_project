@@ -25,10 +25,26 @@ library(dplyr)
 
 #read in the top 50
 top_50 <- readr::read_tsv(top_50_file)
-gene_list <- as.list(top_50[1])
-#print(gene_list)
 #read in the hugo data and grab data from the top 50 genes? 
 expression_df <- readr::read_tsv(data_file)
+
+#read in metadata
+metadata <- readr::read_tsv(metadata_file)
+
+#get rid of ham/tsp
+culledMeta <- metadata[!(metadata$refinebio_disease=="ham/tsp"),]
+discardColumns <- metadata[(metadata$refinebio_disease=="ham/tsp"),]
+discardColumns = as.vector(discardColumns$refinebio_accession_code)
+metadata <- culledMeta
+length(discardColumns)
+#Preserve only columns in expression_df that match one of the accession ids
+culled_expression_df = expression_df[,!(names(expression_df) %in% discardColumns)]
+#check samples match (got rid of ham/tsp people)
+all.equal(colnames(culled_expression_df), metadata$refinebio_accession_code)
+
+#grab only top 50 genes
+gene_list <- as.list(top_50[1])
+#print(gene_list)
 #print(expression_df)
 list_i <- c()
 for(i in 1:nrow(expression_df)){
@@ -37,16 +53,14 @@ for(i in 1:nrow(expression_df)){
     #print(TRUE)
   }
 }
-top_50_expression_df <- expression_df[list_i,]
+top_50_expression_df <- culled_expression_df[list_i,]
 
-#read in metadata
-metadata <- readr::read_tsv(metadata_file)
 metadata <- metadata %>%
   dplyr::mutate(
     refinebio_disease = factor(
       refinebio_disease,
       # specify the possible levels in the order we want them to appear
-      levels = c("hc", "ms", "ham/tsp")
+      levels = c("hc", "ms")
     )
   )
 
