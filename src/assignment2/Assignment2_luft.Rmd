@@ -32,8 +32,25 @@ Order to run R scripts: \
 (task 3) DifferentialAnalysis.R\
 (task 4) heatmap.R\
 (task 5-Hannah) gprofiler2.R\
+(task 5-Luca) topGO.R\
 
 ## Task 1 - Data analysis
+Project report on the analysis of our RNA-seq data set on Neurological Immune-mediated Disorders.
+The data set is composed of 88 total samples out of which 34 are Multiple Sclerosis, 14 are HAM/TSP and 20 are healthy controls.
+URL: https://www.refine.bio/experiments/SRP164913/comprehensive-analysis-of-tcr-s-repertoire-in-patients-with-neurological-immune-mediated-disorders
+### Preprocessing
+At first we downloaded the quantile normalized version of our data set. After a discussion with our TA we switched to the non-normalized version, since some further analysis will use that Data. The following preprocessing steps have been taken.
+
+1. Map Ensemble to HUGO Id's using the following tutorial: https://alexslemonade.github.io/refinebio-examples/03-rnaseq/gene-id-annotation_rnaseq_01_ensembl.html 
+2. Some Ensemble ID's did not map to HUGO, these rows have been dropped.
+3. Some Ensemble ID's mapped to multiple HUGO ID's we took the first match
+4. A few Ensemble ID's mapped to the same HUGO ID's creating duplicate rows. These have been aggregated by the median into single rows.
+
+Of 43'363 Genes in the original data set, 29'589 where used for the analysis. 13'774 rows from the original dataset were dropped or aggregated.
+
+During the Preprocessing steps we also found out that even the non-quartile-normalized dataset from refine.bio was pre normalized.
+The consequences of this will be apparent in further chapters.
+
 ### Sample Size
 ```{r}
 data_analysis_df <- read.delim("../../data/SRP164913/SRP164913_HUGO.tsv",header = TRUE, row.names = 1, stringsAsFactors = FALSE)
