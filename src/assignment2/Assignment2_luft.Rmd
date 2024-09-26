@@ -214,4 +214,7 @@ We had 3 successful gene enrichment tables created. The top ten results of each 
 ![topGO top ten](../../plots/SRP164913_topGO_head_10.png)
 
 ![cluster profiler top ten](../../plots/SRP164913_cluster_profiler_head_10.png)
+
+
 ![wilcoxon enrichment top ten](../../plots/SRP164913_wilcoxon_head_10.png)
+
