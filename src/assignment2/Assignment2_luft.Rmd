@@ -207,6 +207,10 @@ The second plot is an extension of the first plot. For this, Gene Ratio (https:/
 Justin was unable to complete his portion of the assignment. 
 
 ## Task 6/7 - Joint Enrichment Analysis Tables
+
 We had 3 successful gene enrichment tables created. The top ten results of each analysis are shown below. 
 
+![topGO top ten](../../plots/SRP164913_top_GO_head_10.png)
+![cluster profiler top ten](../../plots/SRP164913_cluster_profiler_head_10.png)
+![wilcoxon enrichment top ten](../../plots/SRP164913_wilcoxon_head_10.png)
 
