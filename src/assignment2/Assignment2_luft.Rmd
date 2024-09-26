@@ -168,6 +168,9 @@ Due to time constraint, only Fisher's exact test was used to generate the above 
 To visualize the potential differences the following plot, shows that the Elim test would yield higher p-values for multiple genes, while some are identical for both methods.
 
 ![Fisher vs Elim](../../plots/SRP164913_topGO_fisher_vs_elim.png)
+
+\newpage
+
 ### Peter- ClusterProfiler
 Cluster Profiler is designed for the analysis and visualization of functional profiles of genes and gene clusters. It helps researchers identify biological themes, functions, and pathways that are overrepresented in gene sets. In this specific example, it was used to identify the enriched biological processes, and molecular functions associated with the gene set.
 
@@ -184,6 +187,8 @@ To understand the Wilcoxon Rank-Sum Test, the University of Auckland's Departmen
 Furthermore, in order to understand different functions and libraries in R, I utilized these citations per this document (https://docs.google.com/document/d/1WnJGxTHmfK8Lc3xXH0t1TL96tsdu-CYl5K2yj2KjyU4/edit?usp=sharing)
 
 ![Additional Statistics](../../results/Wilcoxon_GeneOnt/Statistics.png)
+
+\newpage
 
 ![Additional Statistics](../../results/Wilcoxon_GeneOnt/stats1.png)
 
