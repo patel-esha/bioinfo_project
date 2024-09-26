@@ -9,7 +9,9 @@ plots_dir <- file.path("plots")
 
 
 library(clusterProfiler)
+library(enrichplot)
 library(readr)
+library(ggplot2)
 
 expression_df <- readr::read_tsv(data_file)
 gene_list <- as.list(expression_df[1])
@@ -32,3 +34,8 @@ go_results <- enrichGO(gene = sig_genes,
 go_results_df <- as.data.frame(go_results)
 output_file_tsv <- file.path(results_dir, "clusterprofiler_results.tsv")
 write_tsv(go_results_df, file = output_file_tsv)
+
+par(cex=1.5)
+dot_plot <- dotplot(go_results, showCategory=20, font.size=7)
+dot_plot_file <- file.path(plots_dir, "cluster_dot_plot.png")
+ggsave(dot_plot_file, plot = dot_plot)

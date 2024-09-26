@@ -146,6 +146,12 @@ Due to time constraint, only Fisher's exact test was used to generate the above 
 To visualize the potential differences the following plot, shows that the Elim test would
 yield higher p-values for multiple genes, while some are identical for both methods.
 ![Fisher vs Elim](../../plots/SRP164913_topGO_fisher_vs_elim.png)
+### Peter- ClusterProfiler
+Cluster Profiler is designed for the analysis and visualization of functional profiles of genes and gene clusters. It helps researchers identify biological themes, functions, and pathways that are overrepresented in gene sets. In this specific example, it was used to identify the enriched biological processes, and molecular functions associated with the gene set.
+
+Here is the plot I was able to generate after using the enrichGO function to find overrepresentation.
+![ClusterProfiler Plot](../../plots/cluster_dot_plot.png)
+As shown, the top result was small GTPase-mediated signal transduction, which I found to play a significant role in signal transduction pathways that regulate various cellular functions, including cell growth and immune responses. Small GTPases like Rho, Rac, and Cdc42 are vital for activating and migrating immune cells. In MS, these cells lead to neuroinflammation and tissue damage.They also regulate cytokine production in immune and glial cells, with dysregulation potentially worsening MS-related inflammation.
 
 ## Task 6/7 - Joint Enrichment Analysis 
 
