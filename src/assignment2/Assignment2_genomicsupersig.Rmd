@@ -23,7 +23,7 @@ library("umap")
 set.seed(12345)
 ```
 
-**Group:** 4, **Date:** 09/25/2024
+**Group:** 45, **Date:** 09/25/2024
 
 ## Task 1 - Data analysis
 ### Sample Size
@@ -32,7 +32,6 @@ data_analysis_df <- read.delim("../../data/SRP164913/SRP164913_HUGO.tsv",header 
 cat("Number of Genes in the expression matrix: ", dim(df)[1], "\n")
 cat("Number of Samples in the expression matrix: ", dim(df)[2], "\n")
 ```
-
 ### Density Plot of Gene Expressions
 
 ```{R}
@@ -89,7 +88,7 @@ head(top_50)
 ![Volcano Plot](../../plots/SRP164913_volcano_plot.png)
 ```{r}
 
-# nstalls the libraries (click "a" if you want to update them all) 
+# Installs the libraries (click "a" if you want to update them all) 
 if (!requireNamespace("BiocManager", quietly = TRUE))
     install.packages("BiocManager")
 BiocManager::install("clusterProfiler")
@@ -104,6 +103,8 @@ library(org.Hs.eg.db)
 library(dplyr)
 library(ggplot2)
 library(readr)
+library(knitr)
+
 
 # Step 1: Load the differential expression gene data (DEG)
 diff_expr_file <- "C:/Users/Esha/Downloads/Assignment2/bioinfo_project/results/SRP164913_diff_expr_results.tsv"
@@ -186,5 +187,7 @@ write.csv(go_results@result, "Enrichment.csv", row.names = FALSE)
 
 # Show the enhanced results summary
 print(results_summary)
+kable(results_summary, format = "html", caption = "Wilcoxon Test and Statistics for Upregulated and Downregulated Genes")
+
 
 ```
