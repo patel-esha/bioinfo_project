@@ -183,7 +183,8 @@ To understand the Wilcoxon Rank-Sum Test, the University of Auckland's Departmen
 
 Furthermore, in order to understand different functions and libraries in R, I utilized these citations per this document (https://docs.google.com/document/d/1WnJGxTHmfK8Lc3xXH0t1TL96tsdu-CYl5K2yj2KjyU4/edit?usp=sharing)
 
-![Additional Statistics](../../results/Wilcoxon_GeneOnt/Statistics.pn)
+![Additional Statistics](../../results/Wilcoxon_GeneOnt/Statistics.png)
+![Additional Statistics](../../results/Wilcoxon_GeneOnt/stats1.png)
 These are additional statistics that were ran. Note, the P-Value does not display for all of the statistics since it is the same for all of them.
 
 ![GO Enrichment Bar Graph](../../plots/SRP164913_Wilcoxon_barplot.png)
