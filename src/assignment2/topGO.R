@@ -44,9 +44,9 @@ allRes <- GenTable(tc,
                    classicFisher = resultFisher, 
                    orderBy = "classicFisher", 
                    ranksOf = "classicFisher", 
-                   topNodes = 50)
+                   topNodes = 10)
 
-head(allRes)
+head(allRes,10)
 # save results to file
 write.table(allRes, file.path(results_dir, "SRP164913_topGO_results.tsv"), sep = "\t", row.names = FALSE)
 
@@ -70,3 +70,8 @@ gCol <- colMap(gstat$Significant)
 png(file.path(plots_dir, "SRP164913_topGO_fisher_vs_elim.png"), width = 1200, height = 800)
 plot(pValue.classic, pValue.elim, xlab = "p-value classic", ylab = "p-value elim", pch = 19, cex = gSize, col = gCol)
 dev.off()
+
+clusterprofiler_results <- file.path(results_dir, "clusterprofiler_results.tsv")
+clusterprofiler_df <- read.delim(clusterprofiler_results, header = TRUE, stringsAsFactors = FALSE)
+clusterprofiler_sorted <- clusterprofiler_df[order(clusterprofiler_df$p.adjust, decreasing = FALSE), ]
+head(clusterprofiler_sorted, 10)
