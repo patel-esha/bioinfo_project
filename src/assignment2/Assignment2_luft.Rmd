@@ -207,8 +207,10 @@ The second plot is an extension of the first plot. For this, Gene Ratio (https:/
 Justin was unable to complete his portion of the assignment. 
 
 ## Task 6/7 - Joint Enrichment Analysis Tables
+
 We had 3 successful gene enrichment tables created. The top ten results of each analysis are shown below. 
 
+<<<<<<< HEAD
 ```{r}
 #combining results
 results_dir <- file.path("../../results")
@@ -222,6 +224,11 @@ clusterprofiler_df <- readr::read_tsv(clusterprofiler_results)
 wilcoxon_df <- readr::read_csv(wilcoxon_results)
 
 head(topgo_df, 10)
+=======
+![topGO top ten](../../plots/SRP164913_top_GO_head_10.png)
+![cluster profiler top ten](../../plots/SRP164913_cluster_profiler_head_10.png)
+![wilcoxon enrichment top ten](../../plots/SRP164913_wilcoxon_head_10.png)
+>>>>>>> d3d07dc9db25bb45b9ab26c375c4eeca5198a8cf
 
 clusterprofiler_sorted <- clusterprofiler_df[order(clusterprofiler_df$p.adjust,
                                 decreasing = FALSE), ]
