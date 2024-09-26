@@ -178,6 +178,9 @@ Here is the plot I was able to generate after using the enrichGO function to fin
 As shown, the top result was small GTPase-mediated signal transduction, which I found to play a significant role in signal transduction pathways that regulate various cellular functions, including cell growth and immune responses. Small GTPases like Rho, Rac, and Cdc42 are vital for activating and migrating immune cells. In MS, these cells lead to neuroinflammation and tissue damage.They also regulate cytokine production in immune and glial cells, with dysregulation potentially worsening MS-related inflammation.
 
 ### Esha - Wilcoxon Rank-Sum Test
+
+To understand the Wilcoxon Rank-Sum Test, the University of Auckland's Department of Statistics' PDF was utilized (https://www.stat.auckland.ac.nz/~wild/ChanceEnc/Ch10.wilcoxon.pdf).
+
 ![GO Enrichment Bar Graph](../../plots/SRP164913_Wilcoxon_barplot.png)
 One of the plots that I created shows the 10 Gene Ontology concepts in relation to biology. The X-axis shows the gene count that corrrelates with each of the biology process words. So, since the bar is longer, that means that the genes play a bigger role in that specific process. The Y-axis represents the enrichment. The colors showcase the P-values (this uses the Benjamini-Hochberg Methodology) since the red indicates smaller P-values and blue means that the P-values are higher. The words that are the most "shown" means that their presence is incredibly signficant in the dataset.
 
