@@ -1,10 +1,10 @@
 ---
 title: "Bioinformatics Assignment 2"
 output:
-  html_document:
-    df_print: paged
+  #html_document:
+    #df_print: paged
   pdf_document: default
-  word_document: default
+  #word_document: default
 ---
 
 ```{R}
@@ -68,13 +68,15 @@ We were able to get a PCA, tsne, and umap plot following the tutorials. All thre
 ### TSNE Plot
 The TSNE (t-distributed stochastic neighbor embedding) plot visualizes n-dimensional data in two dimensions.
 Using this method, our data is nicely split in two clusters, with a few outliers in the wrong cluster.
-This gives a frist hint, that there are some differentially expressed genes among the two groups, Multiple Sclerosis and Human Control.
+This gives a first hint that there are some differentially expressed genes among the two groups, Multiple Sclerosis and Human Control.
+
 ![tsne Plot](../../plots/SRP164913_tsne_plot.png)
 
 \newpage
 
 ### UMAP Plot
 Similar to t-SNE UMAP also reduces n-dimensional data to two dimensions. In our case it yields similar results to the t-SNE plot with slightly less outliers. 
+
 ![umap Plot](../../plots/SRP164913_umap_plot.png)
 
 ## Task 3 - Differential Analysis
@@ -100,6 +102,7 @@ A heatmap was generated for the top 50 differentially expressed genes. The count
 The function gost was used from gprofiler2 to perform enrichment analysis on the differentially expressed data. Disease ontology was used, as the data was differentially expressed between the MS subjects and healthy controls. Only genes with adjusted p-values below 0.05 were put into the function. Two gost results were generated: one that contains all results, significant or not, and one that contained only significant results. The plot (created with gostplot) for the significant results is shown below. It seems there are a few points above the significance threshold.
 
 ![gprofiler2 Plot](../../plots/SRP164913_gprofiler_gostplot.png)
+
 However, when publish_gosttable(gost_res3) was run, the function would not complete. It would continue to run for over 15 minutes and never produce results. I was unable to generate a table from the results, and when I tried to print the results, it would return NULL for both significant and non-significant gost results. The NULL result is shown below along with the gost function that was run. It is possible that no truly significant results were generated and so the results were empty. 
 
 ```{R}
@@ -128,23 +131,25 @@ what function the differential expressed genes perform in the Human Body.
 #### Methodology
 The Mothodology described is analogous to the Quick Start Guide found here 
 "https://bioconductor.org/packages/release/bioc/vignettes/topGO/inst/doc/topGO.pdf".
-The Output of Task 1-4 was a list of differential expressed genes, with their probability, only trivial transformations were required to input the data into the topGO function which
-returns an object containing all gene identifiers and their scores, GO annotations
-and further information. 
-The cutoff for expressed gene selection has been set to the default of p<0.05.
+The Output of Task 1-4 was a list of differential expressed genes, with their probability, only trivial transformations were required to input the data into the topGO function which returns an object containing all gene identifiers and their scores, GO annotations and further information. 
+The cutoff for expressed gene selection has been set to the default of p < 0.05.
 
 Using the Fisher exact test a enrichment analysis is performed, testing for the over-representation of GO terms within the differentially expressed genes. Due to time constraints only the classic method, testing each GO category independently was used.
 
 #### Results:
 ![Top 5 GO Terms](../../plots/SRP164913_topGO_top_6.png)
-The Table above, shows the first few rows of the enrichment analysis. Although the issues with the pre-normalized data mentioned in the introduction, parts of the result seem plausible to the untrained eye in regard to the disease Multiple Sclerosis (This is the first time I actually experienced joy during this assignment). In multiple sclerosis MS, the immune system attacks the protective cover on nerve, causing communication problems between the brain and the rest of the body. Due to this pathology it is coherent, that the top differential expressed genes found during the enrichment analysis, are genes and receptors linked to the immune system.
+
+The Table above shows the first few rows of the enrichment analysis. Although the issues with the pre-normalized data mentioned in the introduction, parts of the result seem plausible to the untrained eye in regard to the disease Multiple Sclerosis (this is the first time I actually experienced joy during this assignment). In multiple sclerosis MS, the immune system attacks the protective cover on nerve, causing communication problems between the brain and the rest of the body. Due to this pathology it is coherent, that the top differential expressed genes found during the enrichment analysis, are genes and receptors linked to the immune system.
+
 Below the most significant 5 nodes are represented as a tree.
+
 ![Gene Ontology Tree](../../plots/SRP164913_topGO_tree.png)
 
 #### Fisher vs Elim
 Due to time constraint, only Fisher's exact test was used to generate the above results.
-To visualize the potential differences the following plot, shows that the Elim test would
-yield higher p-values for multiple genes, while some are identical for both methods.
+
+To visualize the potential differences the following plot, shows that the Elim test would yield higher p-values for multiple genes, while some are identical for both methods.
+
 ![Fisher vs Elim](../../plots/SRP164913_topGO_fisher_vs_elim.png)
 
 ## Task 6/7 - Joint Enrichment Analysis 
