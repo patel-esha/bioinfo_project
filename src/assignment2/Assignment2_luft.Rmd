@@ -33,6 +33,8 @@ Order to run R scripts: \
 (task 4) heatmap.R\
 (task 5-Hannah) gprofiler2.R\
 (task 5-Luca) topGO.R\
+(task 5-Peter) clusterprofiler.R\
+(task 5-Esha) Assignment2-Patel\
 
 ## Task 1 - Data analysis
 Project report on the analysis of our RNA-seq data set on Neurological Immune-mediated Disorders.
