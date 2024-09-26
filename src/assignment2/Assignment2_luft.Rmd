@@ -179,8 +179,7 @@ As shown, the top result was small GTPase-mediated signal transduction, which I 
 
 ### Esha - Wilcoxon Rank-Sum Test
 
-![Additional Statistics](../../results/Wilcoxon_GeneOnt/Wilcoxon.csv)
-To understand the Wilcoxon Rank-Sum Test, the University of Auckland's Department of Statistics' PDF was utilized (https://www.stat.auckland.ac.nz/~wild/ChanceEnc/Ch10.wilcoxon.pdf).
+To understand the Wilcoxon Rank-Sum Test, the University of Auckland's Department of Statistics' PDF was utilized (https://www.stat.auckland.ac.nz/~wild/ChanceEnc/Ch10.wilcoxon.pdf). Furthermore, the Wilcoxon Rank-Sum Test CSV is located in the results folder within the Wilcoxon's respective folder.
 
 Furthermore, in order to understand different functions and libraries in R, I utilized these citations per this document (https://docs.google.com/document/d/1WnJGxTHmfK8Lc3xXH0t1TL96tsdu-CYl5K2yj2KjyU4/edit?usp=sharing)
 
@@ -196,7 +195,6 @@ One of the plots that I created shows the 10 Gene Ontology concepts in relation 
 
 The second plot is an extension of the first plot. For this, Gene Ratio (https://www.spandidos-publications.com/10.3892/etm.2018.6884#:~:text='Gene%20ratio'%20is%20the%20percentage,function%3B%20CC%2C%20cellular%20component.) was utilized. Gene ratio, as defined by Spandidos Publications is defined as "the percentage of total DEG's in the given GO term". The X-axis is the Gene Ratio in this plot, and the Y-axis are the GO terms.
 
-![Additional Statistics](../../results/Wilcoxon_GeneOnt/Enrichment.csv)
 
 ## Justin - Genomic Super Signature
 Justin was unable to complete his portion of the assignment. 
