@@ -1,0 +1,40 @@
+# Define the file paths 
+data_dir <- file.path("data", "SRP164913")
+data_file <- file.path(data_dir, "SRP164913_HUGO.tsv")
+metadata_file <- file.path(data_dir, "metadata_SRP164913.tsv")
+results_dir <- file.path("results")
+plots_dir <- file.path("plots")
+
+# install.packages("matrixStats")
+# install.packages("factoextra")
+library(magrittr)
+library(matrixStats)
+library(cluster)
+library("factoextra")
+
+# Read in the gene expression table
+
+# Read in data and metadata TSV file and make Gene column into row names
+metadata <- readr::read_tsv(metadata_file)
+expressions <- readr::read_tsv(data_file)
+
+# extend the expressions with their varriance
+expressions$variance <- apply(expressions[,-1], 1, var) 
+
+# Order the data frame by variance using order()
+exp_ordered <- expressions[order(-expressions$variance), ]
+
+# Select the top 5000 rows with the highest variance
+exp_top10 <- exp_ordered[1:10, ]
+exp_top100 <- exp_ordered[1:100, ]
+exp_top1000 <- exp_ordered[1:1000, ]
+exp_top5000 <- exp_ordered[1:5000, ]
+exp_top10000 <- exp_ordered[1:10000, ]
+
+k <- 4
+pam_res <- pam(exp_top10000, k = k)
+head(exp_top5000)
+
+# plot
+fviz_cluster(pam_res,  geom = "point")
+
