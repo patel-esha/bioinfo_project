@@ -101,7 +101,7 @@ run_gmm_clustering <- function(num_genes) {
 
 ```{r run_clustering}
 # Run clustering with different numbers of genes
-gene_numbers <- c(10, 100, 1000, 10000)
+gene_numbers <- c(10, 100, 1000, 5000, 10000)
 cluster_results <- list()
 
 for (num_genes in gene_numbers) {
