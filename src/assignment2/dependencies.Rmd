@@ -15,6 +15,17 @@ if (!("org.Hs.eg.db" %in% installed.packages())) {
 
 BiocManager::install("M3C")
 
+<<<<<<< HEAD
+#topgo
+if (!require("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+
+BiocManager::install("topGO")
+=======
+# install topGo plotting library
+BiocManager::install("Rgraphviz")
+>>>>>>> fc112a09321bc8272fb4c9be2fb96f3e4e1de4f7
+
 # install tidyverse
 install.packages("tidyverse")
 

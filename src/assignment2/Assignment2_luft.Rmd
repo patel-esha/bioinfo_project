@@ -1,7 +1,10 @@
 ---
 title: "Bioinformatics Assignment 2"
 output:
+  #html_document:
+    #df_print: paged
   pdf_document: default
+  #word_document: default
 ---
 
 ```{R}
@@ -23,14 +26,33 @@ set.seed(12345)
 ```
 
 **Group:** 5, **Date:** 09/25/2024
-Order to run R scripts: 
-(task 1) preprocessing.R
-(task 2) PCA_Plot.R
-(task 3) DifferentialAnalysis.R
-(task 4) heatmap.R
-(task 5-HAL) gprofiler2.R
+Order to run R scripts: \
+(task 1) preprocessing.R\
+(task 2) PCA_Plot.R\
+(task 3) DifferentialAnalysis.R\
+(task 4) heatmap.R\
+(task 5-Hannah) gprofiler2.R\
+(task 5-Luca) topGO.R\
+(task 5-Peter) clusterprofiler.R\
+(task 5-Esha) Assignment2-Patel\
 
 ## Task 1 - Data analysis
+Project report on the analysis of our RNA-seq data set on Neurological Immune-mediated Disorders.
+The data set is composed of 88 total samples out of which 34 are Multiple Sclerosis, 14 are HAM/TSP and 20 are healthy controls.
+URL: https://www.refine.bio/experiments/SRP164913/comprehensive-analysis-of-tcr-s-repertoire-in-patients-with-neurological-immune-mediated-disorders
+### Preprocessing
+At first we downloaded the quantile normalized version of our data set. After a discussion with our TA we switched to the non-normalized version, since some further analysis will use that Data. The following preprocessing steps have been taken.
+
+1. Map Ensemble to HUGO Id's using the following tutorial: https://alexslemonade.github.io/refinebio-examples/03-rnaseq/gene-id-annotation_rnaseq_01_ensembl.html 
+2. Some Ensemble ID's did not map to HUGO, these rows have been dropped.
+3. Some Ensemble ID's mapped to multiple HUGO ID's we took the first match
+4. A few Ensemble ID's mapped to the same HUGO ID's creating duplicate rows. These have been aggregated by the median into single rows.
+
+Of 43'363 Genes in the original data set, 29'589 where used for the analysis. 13'774 rows from the original dataset were dropped or aggregated.
+
+During the Preprocessing steps we also found out that even the non-quartile-normalized dataset from refine.bio was pre normalized.
+The consequences of this will be apparent in further chapters.
+
 ### Sample Size
 ```{r}
 data_analysis_df <- read.delim("../../data/SRP164913/SRP164913_HUGO.tsv",header = TRUE, row.names = 1, stringsAsFactors = FALSE)
@@ -55,15 +77,29 @@ ggplot(gene_median_df, aes(x = Median)) + geom_density() + xlab("Gene Expression
 The density plot shows a left skewed distribution of gene expression counts with most of the expressions being between 0 and 10 but with a few outliers between 10 and 15. We downloaded the un-normalized data, however when we opened the raw file, most count values were 0 or very close to 0. We suspect the data came pre-normalized, and this is causing some issues. This carries over through the entire assignment. 
 
 ## Task 2 - Principal Component Analysis
-We were able to get a PCA, tsne, and umap plot following the tutorials. All three show a clear difference between the healthy control (hs) and MS (ms) groups, with a few samples in the midst of the other cluster. The number of crossovers is different. 
+We were able to get a PCA, tsne, and umap plot following the tutorials. All three show a clear difference between the healthy control (hs) and MS (ms) groups, with a few samples in the midst of the other cluster. The number of crossovers is different.
+
 ### PCA Plot
 ![PCA Plot](../../plots/SRP164913_pca_plot.png)
 
+\newpage
+
 ### TSNE Plot
+The TSNE (t-distributed stochastic neighbor embedding) plot visualizes n-dimensional data in two dimensions.
+Using this method, our data is nicely split in two clusters, with a few outliers in the wrong cluster.
+This gives a first hint that there are some differentially expressed genes among the two groups, Multiple Sclerosis and Human Control.
+
 ![tsne Plot](../../plots/SRP164913_tsne_plot.png)
+
+\newpage
+
 ### UMAP Plot
+Similar to t-SNE UMAP also reduces n-dimensional data to two dimensions. In our case it yields similar results to the t-SNE plot with slightly less outliers. 
+
 ![umap Plot](../../plots/SRP164913_umap_plot.png)
+
 ## Task 3 - Differential Analysis
+
 When we did our differential analysis, because the data was so small and normalized, we had to adjust the filter value to 0.01 or else only ~1000 rows were making it to the DESeqDataSetFromMatrix() step. This was causing our volcano plot to look very sparse. We were able to get a list of the top 50 differentially expressed genes. The results, both the entire table and only the top 50, are stored in the results folder. 
 ```{R}
 top_50_file <- file.path(results_dir, "SRP164913_diff_expr_top_50_results.tsv")
@@ -73,15 +109,19 @@ head(top_50)
 ![Volcano Plot](../../plots/SRP164913_volcano_plot.png)
 The volcano plot, while still somewhat sparse, is far more populated than it was with the highly filtered data. Most significant results have a negative log fold change.  
 
+\newpage
+
 ## Task 4 - Heatmap
 A heatmap was generated for the top 50 differentially expressed genes. The counts for each gene in the top 50 were extracted and put into the heatmap plot. It was annotated with the two disease groups: ms subjects and healthy control subjects. Since many of our counts are 0 and therefore are not expressed differently, the map is largely blue. 
+
 ![Heatmap](../../plots/SRP164913_heatmap_plot.png)
 
 ## Task 5 - Enrichment Analysis
-Hannah- gprofiler2
+### Hannah- gprofiler2
 The function gost was used from gprofiler2 to perform enrichment analysis on the differentially expressed data. Disease ontology was used, as the data was differentially expressed between the MS subjects and healthy controls. Only genes with adjusted p-values below 0.05 were put into the function. Two gost results were generated: one that contains all results, significant or not, and one that contained only significant results. The plot (created with gostplot) for the significant results is shown below. It seems there are a few points above the significance threshold.
 
 ![gprofiler2 Plot](../../plots/SRP164913_gprofiler_gostplot.png)
+
 However, when publish_gosttable(gost_res3) was run, the function would not complete. It would continue to run for over 15 minutes and never produce results. I was unable to generate a table from the results, and when I tried to print the results, it would return NULL for both significant and non-significant gost results. The NULL result is shown below along with the gost function that was run. It is possible that no truly significant results were generated and so the results were empty. 
 
 ```{R}
@@ -102,4 +142,81 @@ When I had initially tried to run gost with every gene name, no p-value factor, 
 
 Unfortunatly, due to the circumstances described above, no table was generated using the gprofiler2 method. 
 
-## Task 6/7 - Joint Enrichment Analysis Table
+### Luca - topGO
+Given a set of genes and a gene differential expression analysis, topGo enriches
+the most relevant Genes with Gene Ontology (GO) terms. This helps to find out
+what function the differential expressed genes perform in the Human Body.
+
+#### Methodology
+The Mothodology described is analogous to the Quick Start Guide found here 
+"https://bioconductor.org/packages/release/bioc/vignettes/topGO/inst/doc/topGO.pdf".
+The Output of Task 1-4 was a list of differential expressed genes, with their probability, only trivial transformations were required to input the data into the topGO function which returns an object containing all gene identifiers and their scores, GO annotations and further information. 
+The cutoff for expressed gene selection has been set to the default of p < 0.05.
+
+Using the Fisher exact test a enrichment analysis is performed, testing for the over-representation of GO terms within the differentially expressed genes. Due to time constraints only the classic method, testing each GO category independently was used.
+
+#### Results:
+![Top 5 GO Terms](../../plots/SRP164913_topGO_top_6.png)
+
+The Table above shows the first few rows of the enrichment analysis. Although the issues with the pre-normalized data mentioned in the introduction, parts of the result seem plausible to the untrained eye in regard to the disease Multiple Sclerosis (this is the first time I actually experienced joy during this assignment). In multiple sclerosis MS, the immune system attacks the protective cover on nerve, causing communication problems between the brain and the rest of the body. Due to this pathology it is coherent, that the top differential expressed genes found during the enrichment analysis, are genes and receptors linked to the immune system.
+
+Below the most significant 5 nodes are represented as a tree.
+
+![Gene Ontology Tree](../../plots/SRP164913_topGO_tree.png)
+
+#### Fisher vs Elim
+Due to time constraint, only Fisher's exact test was used to generate the above results.
+
+To visualize the potential differences the following plot, shows that the Elim test would yield higher p-values for multiple genes, while some are identical for both methods.
+
+![Fisher vs Elim](../../plots/SRP164913_topGO_fisher_vs_elim.png)
+
+\newpage
+
+### Peter- ClusterProfiler
+Cluster Profiler is designed for the analysis and visualization of functional profiles of genes and gene clusters. It helps researchers identify biological themes, functions, and pathways that are overrepresented in gene sets. In this specific example, it was used to identify the enriched biological processes, and molecular functions associated with the gene set.
+
+Here is the plot I was able to generate after using the enrichGO function to find overrepresentation.
+
+![ClusterProfiler Plot](../../plots/cluster_dot_plot.png)
+
+As shown, the top result was small GTPase-mediated signal transduction, which I found to play a significant role in signal transduction pathways that regulate various cellular functions, including cell growth and immune responses. Small GTPases like Rho, Rac, and Cdc42 are vital for activating and migrating immune cells. In MS, these cells lead to neuroinflammation and tissue damage.They also regulate cytokine production in immune and glial cells, with dysregulation potentially worsening MS-related inflammation.
+
+### Esha - Wilcoxon Rank-Sum Test
+
+To understand the Wilcoxon Rank-Sum Test, the University of Auckland's Department of Statistics' PDF was utilized (https://www.stat.auckland.ac.nz/~wild/ChanceEnc/Ch10.wilcoxon.pdf). Furthermore, the Wilcoxon Rank-Sum Test CSV is located in the results folder within the Wilcoxon's respective folder.
+
+Furthermore, in order to understand different functions and libraries in R, I utilized these citations per this document (https://docs.google.com/document/d/1WnJGxTHmfK8Lc3xXH0t1TL96tsdu-CYl5K2yj2KjyU4/edit?usp=sharing)
+
+![Additional Statistics](../../results/Wilcoxon_GeneOnt/Statistics.png)
+
+\newpage
+
+![Additional Statistics](../../results/Wilcoxon_GeneOnt/stats1.png)
+
+These are additional statistics that were ran. Note, the P-Value does not display for all of the statistics since it is the same for all of them.
+
+![GO Enrichment Bar Graph](../../plots/SRP164913_Wilcoxon_barplot.png)
+\newpage
+
+One of the plots that I created shows the 10 Gene Ontology concepts in relation to biology. The X-axis shows the gene count that corrrelates with each of the biology process words. So, since the bar is longer, that means that the genes play a bigger role in that specific process. The Y-axis represents the enrichment. The colors showcase the P-values (this uses the Benjamini-Hochberg Methodology) since the red indicates smaller P-values and blue means that the P-values are higher. The words that are the most "shown" means that their presence is incredibly signficant in the dataset.
+
+![GO Enrichment Dot Plot](../../plots/SRP164913_Wilcoxon_dotplot.png)
+
+The second plot is an extension of the first plot. For this, Gene Ratio (https://www.spandidos-publications.com/10.3892/etm.2018.6884#:~:text='Gene%20ratio'%20is%20the%20percentage,function%3B%20CC%2C%20cellular%20component.) was utilized. Gene ratio, as defined by Spandidos Publications is defined as "the percentage of total DEG's in the given GO term". The X-axis is the Gene Ratio in this plot, and the Y-axis are the GO terms.
+
+
+## Justin - Genomic Super Signature
+Justin was unable to complete his portion of the assignment. 
+
+## Task 6/7 - Joint Enrichment Analysis Tables
+
+We had 3 successful gene enrichment tables created. The top ten results of each analysis are shown below. 
+
+![topGO top ten](../../plots/SRP164913_topGO_head_10.png)
+
+![cluster profiler top ten](../../plots/SRP164913_cluster_profiler_head_10.png)
+
+
+![wilcoxon enrichment top ten](../../plots/SRP164913_wilcoxon_head_10.png)
+

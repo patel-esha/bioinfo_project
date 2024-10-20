@@ -1,0 +1,193 @@
+---
+title: "Bioinformatics Assignment 2 - Esha Patel"
+output:
+  pdf_document: default
+  html_notebook: default
+---
+
+```{R}
+# Define file paths
+data_dir <- file.path("../../data", "SRP164913")
+data_file <- file.path(data_dir, "SRP164913_HUGO.tsv")
+metadata_file <- file.path(data_dir, "metadata_SRP164913.tsv")
+results_dir <- file.path("results")
+plots_dir <- file.path("plots")
+
+# Libraries
+library(DESeq2)
+library(ggplot2)
+library(magrittr)
+library(M3C)
+library("umap")
+# Set seed for reproducible results
+set.seed(12345)
+```
+
+**Group:** 45, **Date:** 09/25/2024
+
+## Task 1 - Data analysis
+### Sample Size
+```{r}
+data_analysis_df <- read.delim("../../data/SRP164913/SRP164913_HUGO.tsv",header = TRUE, row.names = 1, stringsAsFactors = FALSE)
+cat("Number of Genes in the expression matrix: ", dim(df)[1], "\n")
+cat("Number of Samples in the expression matrix: ", dim(df)[2], "\n")
+```
+### Density Plot of Gene Expressions
+
+```{R}
+# Get the median of expressions by gene
+gene_median <- apply(data_analysis_df, 1, median)
+head(gene_median)
+gene_median = log2(gene_median +1)
+cat("Variance between gene expression medians:", var(gene_median, na.rm = TRUE))
+# Create a Data frame from the numerical array
+gene_median_df <- data.frame(Median = gene_median)
+# Plot the values
+ggplot(gene_median_df, aes(x = Median)) + geom_density() + xlab("Gene Expression Count") + ylim(0,1e-2)
+```
+The density plot shows a Righ Skewed distribution of gene Expression counts with most of the expressions being between zero and 5 but with a few outliers between 10 and 15 expressions.
+
+## Task 2 - Principal Component Analysis
+### PCA Plot
+![PCA Plot](../../plots/SRP164913_pca_plot.png)
+
+### TSNE Plot
+
+```{R}
+tsne(filtered_expression_df, labels=as.factor(metadata$refinebio_disease))
+```
+### UMAP Plot
+```{R}
+gene <- DESeqDataSetFromMatrix(
+  countData = filtered_expression_df,
+  colData = metadata,
+  design = ~refinebio_disease
+)
+norm <- vst(gene, nsub=100)
+normalized_counts <- assay(norm) %>%
+  t() # transpose, row -> sample
+results <- umap::umap(normalized_counts)
+umap_plot <- data.frame(results$layout) %>%
+  tibble::rownames_to_column("refinebio_accession_code") %>%
+  dplyr::inner_join(metadata, by = "refinebio_accession_code")
+ggplot(
+  umap_plot,
+  aes(
+    x = X1,
+    y = X2,
+    color = refinebio_disease
+  )
+) +
+  geom_point()
+```
+## Task 3 - Differential Analysis
+Top 50 differentially expressed genes
+```{R}
+head(top_50)
+```
+![Volcano Plot](../../plots/SRP164913_volcano_plot.png)
+```{r}
+
+# Installs the libraries (click "a" if you want to update them all) 
+if (!requireNamespace("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+BiocManager::install("clusterProfiler")
+BiocManager::install("org.Hs.eg.db")
+install.packages("readr")
+install.packages("ggplot2")
+install.packages("dplyr")
+
+# mention the libraries
+library(clusterProfiler)
+library(org.Hs.eg.db)
+library(dplyr)
+library(ggplot2)
+library(readr)
+library(knitr)
+
+
+# Step 1: Load the differential expression gene data (DEG)
+diff_expr_file <- "C:/Users/Esha/Downloads/Assignment2/bioinfo_project/results/SRP164913_diff_expr_results.tsv"
+diff_expr_df <- read_tsv(diff_expr_file)
+
+# Step 2: Group by log2FoldChange, so the + is upregulated', - is 'downregulated'
+diff_expr_df$group <- ifelse(diff_expr_df$log2FoldChange > 0, "upregulated", "downregulated")
+
+# Step 3: Keep the statistically significant genes (padj < 0.05)
+significant_genes <- diff_expr_df %>% filter(padj < 0.05)
+
+# Step 4: Run the Wilcoxon Rank Sum Test
+wilcox_test_results <- wilcox.test(log2FoldChange ~ group, data = significant_genes)
+
+# Step 5: The statistics for unregulated vs downregulated
+upregulated <- significant_genes %>% filter(group == "upregulated") %>% pull(log2FoldChange)
+downregulated <- significant_genes %>% filter(group == "downregulated") %>% pull(log2FoldChange)
+
+# Calculates the additional statistics (helpful for comprehensiveness)
+calculate_statistics <- function(group) {
+  stats <- list(
+    Mean = mean(group),
+    Median = median(group),
+    Std_Dev = sd(group),
+    Variance = var(group),
+    Min = min(group),
+    Max = max(group),
+    Range = max(group) - min(group),
+    Skewness = sum(((group - mean(group)) / sd(group))^3) / length(group),
+    Kurtosis = sum(((group - mean(group)) / sd(group))^4) / length(group) - 3,
+    IQR = IQR(group),
+    Quartile_1 = quantile(group, 0.25),
+    Quartile_3 = quantile(group, 0.75)
+  )
+  return(stats)
+}
+
+# Computates the statistics from the function ABOVE for unregulated vs regulated so we don't have to call it twice
+upregulated_stats <- calculate_statistics(upregulated)
+downregulated_stats <- calculate_statistics(downregulated)
+
+# Table with the statistics
+results_summary <- data.frame(
+  Statistic = c("Mean", "Median", "Std_Dev", "Variance", "Min", "Max", "Range", "Skewness", "Kurtosis", "IQR", "Quartile_1", "Quartile_3"),
+  Upregulated = unlist(upregulated_stats),
+  Downregulated = unlist(downregulated_stats)
+)
+
+# The Wilcoxon p-value
+results_summary$P_value_Wilcoxon <- NA
+results_summary$P_value_Wilcoxon[1] <- wilcox_test_results$p.value
+
+# Step 6: Perform Gene enrichment analysis
+gene_symbols <- significant_genes$Gene
+
+# Hugo genes to Entrez IDs
+entrez_ids <- bitr(gene_symbols, fromType = "SYMBOL", toType = "ENTREZID", OrgDb = org.Hs.eg.db)
+
+#  GO enrichment analysis for additional biology
+go_results <- enrichGO(
+  gene = entrez_ids$ENTREZID,
+  OrgDb = org.Hs.eg.db,
+  keyType = "ENTREZID",
+  ont = "BP",
+  pAdjustMethod = "BH",
+  pvalueCutoff = 0.05,
+  qvalueCutoff = 0.05
+)
+
+# See the GO enrichment results
+head(go_results@result)
+
+# Step 7: Results in a different form
+barplot(go_results, showCategory = 10, title = "Top 10 GO Enrichment Terms")
+dotplot(go_results, showCategory = 10, title = "Top 10 GO Enrichment Terms")
+
+# Results in a CSV file
+write.csv(results_summary, "Wilcoxon.csv", row.names = FALSE)
+write.csv(go_results@result, "Enrichment.csv", row.names = FALSE)
+
+# Show the enhanced results summary
+print(results_summary)
+kable(results_summary, format = "html", caption = "Wilcoxon Test and Statistics for Upregulated and Downregulated Genes")
+
+
+```

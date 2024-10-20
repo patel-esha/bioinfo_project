@@ -64,7 +64,7 @@ gost_res2 <- gost(
   organism = "hsapiens"
   ) 
 gostplot(gost_res2, capped=TRUE, interactive=FALSE)
-head(gost_res2$results)
+head(gost_res2$result)
 #significant only
 gost_res3 <- gost(
   query = unlist(diff_expr_df[diff_expr_df$padj<0.05, 'Gene']), 
