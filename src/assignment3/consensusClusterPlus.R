@@ -29,6 +29,9 @@ library(tidyclust)
 library(tidyverse)
 #BiocManager::install("ConsensusClusterPlus")
 library(ConsensusClusterPlus)
+library(DESeq2)
+library(ggplot2)
+library(magrittr)
 set.seed(1234)
 
 
@@ -48,14 +51,14 @@ diff_genes_expr_df <- diff_genes_expr_df %>% remove_rownames %>% column_to_rowna
 d = data.matrix(diff_genes_expr_df)
 #run concensus cluster plus
 results_path <- file.path(results_dir, "consensusClusterPlusResults/k=6")
-results <- ConsensusClusterPlus(d,maxK=6,reps=50,pItem=0.8,pFeature=1,title=results_path,clusterAlg="hc",distance="pearson",plot="png")
+results <- ConsensusClusterPlus(d,maxK=6,reps=50,pItem=0.8,pFeature=1,title=results_path,distance="pearson",plot="png")
 #cluster and item consensus
 icl = calcICL(results,title=results_path,plot="png")
 
 
-#alter params
+#alter k
 results_path <- file.path(results_dir, "consensusClusterPlusResults/k=10")
-results2 <- ConsensusClusterPlus(d,maxK=10,reps=50,pItem=0.8,pFeature=1,title=results_path,clusterAlg="hc",distance="pearson",plot="png")
+results2 <- ConsensusClusterPlus(d,maxK=10,reps=50,pItem=0.8,pFeature=1,title=results_path,distance="pearson",plot="png")
 icl2 = calcICL(results2,title=results_path,plot="png")
 
 results_path <- file.path(results_dir, "consensusClusterPlusResults/k=20")
@@ -88,10 +91,170 @@ results6 <- ConsensusClusterPlus(d,maxK=10,reps=50,pItem=0.8,pFeature=1,title=re
 icl6 = calcICL(results6,title=results_path,plot="png")
 
 #chi squared test with each pair of clustering results
-#turn data into a contingency table(s)? 10vs100, 10vs1000, 10vs1980, 100vs1000, 100vs1980, 1000vs1980?
-#run the chi squared test on table
-print(results[[2]]["consensusMatrix"]) #is this what i should use???
-chisq.test()
+#turn data into a contingency table(s): 10vs100, 10vs1000, 10vs1980, 100vs1000, 100vs1980, 1000vs1980
+#           g=10    g=100
+# cluster1
+# cluster2
+#prepare data
+clusterAssignmentsk2g1980 <- results[[2]]["consensusClass"]
+clusterAssignmentsk2g10 <- results4[[2]]["consensusClass"]
+clusterAssignmentsk2g100 <- results5[[2]]["consensusClass"]
+clusterAssignmentsk2g1000 <- results6[[2]]["consensusClass"]
+
+chi10vs100 <- data.frame(g10 = c(unname(table(clusterAssignmentsk2g10[[1]])[1]),unname(table(clusterAssignmentsk2g10[[1]])[2])),
+                         g100 = c(unname(table(clusterAssignmentsk2g100[[1]])[1]), unname(table(clusterAssignmentsk2g100[[1]])[2])))
+chi10vs1000 <- data.frame(g10 = c(unname(table(clusterAssignmentsk2g10[[1]])[1]),unname(table(clusterAssignmentsk2g10[[1]])[2])),
+                         g1000 = c(unname(table(clusterAssignmentsk2g1000[[1]])[1]), unname(table(clusterAssignmentsk2g1000[[1]])[2])))
+chi10vs1980 <- data.frame(g10 = c(unname(table(clusterAssignmentsk2g10[[1]])[1]),unname(table(clusterAssignmentsk2g10[[1]])[2])),
+                         g1980 = c(unname(table(clusterAssignmentsk2g1980[[1]])[1]), unname(table(clusterAssignmentsk2g1980[[1]])[2])))
+chi100vs1000 <- data.frame(g100 = c(unname(table(clusterAssignmentsk2g100[[1]])[1]),unname(table(clusterAssignmentsk2g100[[1]])[2])),
+                         g1000 = c(unname(table(clusterAssignmentsk2g1000[[1]])[1]), unname(table(clusterAssignmentsk2g1000[[1]])[2])))
+chi100vs1980 <- data.frame(g100 = c(unname(table(clusterAssignmentsk2g100[[1]])[1]),unname(table(clusterAssignmentsk2g100[[1]])[2])),
+                         g1980 = c(unname(table(clusterAssignmentsk2g1980[[1]])[1]), unname(table(clusterAssignmentsk2g1980[[1]])[2])))
+chi1000vs1980 <- data.frame(g1000 = c(unname(table(clusterAssignmentsk2g1000[[1]])[1]),unname(table(clusterAssignmentsk2g1000[[1]])[2])),
+                         g1980 = c(unname(table(clusterAssignmentsk2g1980[[1]])[1]), unname(table(clusterAssignmentsk2g1980[[1]])[2])))
+
+#run the chi squared test on tables
+chisq.test(chi10vs100)
+chisq.test(chi10vs1000)
+chisq.test(chi10vs1980)
+chisq.test(chi100vs1000)
+chisq.test(chi100vs1980)
+chisq.test(chi1000vs1980)
+#all have x-squared value of 0 and p value of 1
+
+#do it with k=3
+clusterAssignmentsk3g1980 <- results[[3]]["consensusClass"]
+clusterAssignmentsk3g10 <- results4[[3]]["consensusClass"]
+clusterAssignmentsk3g100 <- results5[[3]]["consensusClass"]
+clusterAssignmentsk3g1000 <- results6[[3]]["consensusClass"]
+#           g10  g100
+#cluster 1
+#cluster 2
+#cluster 3
+
+chi3k10vs100 <- data.frame(g10 = c(unname(table(clusterAssignmentsk3g10[[1]])[1]),unname(table(clusterAssignmentsk3g10[[1]])[2]), unname(table(clusterAssignmentsk3g10[[1]])[3])),
+                         g100 = c(unname(table(clusterAssignmentsk3g100[[1]])[1]), unname(table(clusterAssignmentsk3g100[[1]])[2]), unname(table(clusterAssignmentsk3g100[[1]])[3])))
+chi3k10vs1000 <- data.frame(g10 = c(unname(table(clusterAssignmentsk3g10[[1]])[1]),unname(table(clusterAssignmentsk3g10[[1]])[2]), unname(table(clusterAssignmentsk3g10[[1]])[3])),
+                           g1000 = c(unname(table(clusterAssignmentsk3g1000[[1]])[1]), unname(table(clusterAssignmentsk3g1000[[1]])[2]), unname(table(clusterAssignmentsk3g1000[[1]])[3])))
+chi3k10vs1980 <- data.frame(g10 = c(unname(table(clusterAssignmentsk3g10[[1]])[1]),unname(table(clusterAssignmentsk3g10[[1]])[2]), unname(table(clusterAssignmentsk3g10[[1]])[3])),
+                           g1980 = c(unname(table(clusterAssignmentsk3g1980[[1]])[1]), unname(table(clusterAssignmentsk3g1980[[1]])[2]), unname(table(clusterAssignmentsk3g1980[[1]])[3])))
+chi3k100vs1000 <- data.frame(g100 = c(unname(table(clusterAssignmentsk3g100[[1]])[1]),unname(table(clusterAssignmentsk3g100[[1]])[2]), unname(table(clusterAssignmentsk3g100[[1]])[3])),
+                           g1000 = c(unname(table(clusterAssignmentsk3g1000[[1]])[1]), unname(table(clusterAssignmentsk3g1000[[1]])[2]), unname(table(clusterAssignmentsk3g1000[[1]])[3])))
+chi3k100vs1980 <- data.frame(g100 = c(unname(table(clusterAssignmentsk3g100[[1]])[1]),unname(table(clusterAssignmentsk3g100[[1]])[2]), unname(table(clusterAssignmentsk3g100[[1]])[3])),
+                           g1980 = c(unname(table(clusterAssignmentsk3g1980[[1]])[1]), unname(table(clusterAssignmentsk3g1980[[1]])[2]), unname(table(clusterAssignmentsk3g1980[[1]])[3])))
+chi3k1000vs1980 <- data.frame(g1000 = c(unname(table(clusterAssignmentsk3g1000[[1]])[1]),unname(table(clusterAssignmentsk3g1000[[1]])[2]), unname(table(clusterAssignmentsk3g1000[[1]])[3])),
+                           g1980 = c(unname(table(clusterAssignmentsk3g1980[[1]])[1]), unname(table(clusterAssignmentsk3g1980[[1]])[2]), unname(table(clusterAssignmentsk3g1980[[1]])[3])))
+chisq.test(chi3k10vs100)
+chisq.test(chi3k10vs1000)
+chisq.test(chi3k10vs1980)
+chisq.test(chi3k100vs1000)
+chisq.test(chi3k100vs1980)
+chisq.test(chi3k1000vs1980)
+#all have x-squared value of 0 and p value of 1
+
+#plot
+metadata_clustered <- metadata
+metadata_clustered$cluster <- clusterAssignmentsk2g1980[[1]]
+metadata_clustered <- metadata_clustered %>%
+  dplyr::mutate(
+    cluster = factor(
+      cluster,
+      # specify the possible levels in the order we want them to appear
+      levels = c("1", "2")
+    )
+  )
+filtered_data_df <- diff_genes_expr_df %>% dplyr::filter(rowSums(.) >=5)
+filtered_data_df <- round(filtered_data_df)
+dds <- DESeqDataSetFromMatrix(
+  countData = filtered_data_df,
+  colData = metadata_clustered,
+  design = ~1
+)
+orows <- sum( rowMeans( counts(dds, normalized=FALSE)) > 5 )
+dds_norm <- vst(dds, nsub=20)
+plotPCA(
+  dds_norm,
+  intgroup = "cluster"
+)
+pca_results <-
+  plotPCA(
+    dds_norm,
+    intgroup = c("cluster"),
+    returnData = TRUE # This argument tells R to return the PCA values
+  )
+annotated_pca_plot <- ggplot(
+  pca_results,
+  aes(
+    x = PC1,
+    y = PC2,
+    # plot points with different colors for each `refinebio_disease` group
+    color = cluster,
+  )
+) +
+  # Make a scatter plot
+  geom_point()
+
+# display annotated plot
+annotated_pca_plot
+results_path <- file.path(results_dir, "consensusClusterPlusResults")
+ggsave(
+  file.path(results_path, "consensusClusterPlusPlot2k.png"),
+  plot = annotated_pca_plot # the plot object that we want saved to file
+)
+
+#do it again with 3 groups
+metadata_clustered <- metadata
+metadata_clustered$cluster <- clusterAssignmentsk3g1980[[1]]
+metadata_clustered <- metadata_clustered %>%
+  dplyr::mutate(
+    cluster = factor(
+      cluster,
+      # specify the possible levels in the order we want them to appear
+      levels = c("1", "2","3")
+    )
+  )
+filtered_data_df <- diff_genes_expr_df %>% dplyr::filter(rowSums(.) >=5)
+filtered_data_df <- round(filtered_data_df)
+dds <- DESeqDataSetFromMatrix(
+  countData = filtered_data_df,
+  colData = metadata_clustered,
+  design = ~1
+)
+orows <- sum( rowMeans( counts(dds, normalized=FALSE)) > 5 )
+dds_norm <- vst(dds, nsub=20)
+plotPCA(
+  dds_norm,
+  intgroup = "cluster"
+)
+pca_results <-
+  plotPCA(
+    dds_norm,
+    intgroup = c("cluster"),
+    returnData = TRUE # This argument tells R to return the PCA values
+  )
+annotated_pca_plot <- ggplot(
+  pca_results,
+  aes(
+    x = PC1,
+    y = PC2,
+    # plot points with different colors for each `refinebio_disease` group
+    color = cluster,
+  )
+) +
+  # Make a scatter plot
+  geom_point()
+
+# display annotated plot
+annotated_pca_plot
+results_path <- file.path(results_dir, "consensusClusterPlusResults")
+ggsave(
+  file.path(results_path, "consensusClusterPlusPlot3k.png"),
+  plot = annotated_pca_plot # the plot object that we want saved to file
+)
+
+
+
 #alluvial diagram
 
 
@@ -99,6 +262,11 @@ chisq.test()
 #heatmap of the 1980 genes used. Add annotation side bars of clusters from each method and the two groups
 
 #chi squared test of independence on two groups, for each clustering result
+#chi table format: 
+#         cluster1  cluster2
+# group1
+# group2 
+
 
 #padjust all stat test results for multiple hypothesis testing
 
