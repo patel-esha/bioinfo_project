@@ -1,0 +1,19 @@
+Justin Reyes --- Guassian Mixture Model
+
+2. Indivdual Tests
+	a) N/A
+	b) Chosen method is Gaussian mixture models (ii). This will be represented
+		by "gmm" in file names.
+	c) N/A
+	d) My method found 8 clusters.
+		i) N/A
+		ii) I chose my k value using Bayesian Information Criterion (BIC).
+			It automatically returns the best k value, so no testing was needed.
+			Using different k values only changes how tight the cluster groupings
+			are, either larger or smaller based on smaller/lower k values.
+	e)
+		i) Changing the number of genes changed the visual layout of the plot as
+			well as the optimal k value.
+		ii) Chi-square tests table in src/assignment3/gmm_chi_square_results.xlsx
+		iii) Alluvial diagram saved in plots/gmm_alluvial_diagram.png
+			

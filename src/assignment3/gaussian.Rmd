@@ -1,0 +1,199 @@
+---
+title: "Gaussian Mixture Model Clustering"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Loads libraries/data
+
+```{r load_libraries_and_data}
+# Define file paths 
+data_dir <- file.path("..", "..", "data", "SRP164913")
+data_file <- file.path(data_dir, "SRP164913_HUGO.tsv")
+metadata_file <- file.path(data_dir, "metadata_SRP164913.tsv")
+plots_dir <- file.path("..", "..", "plots")
+
+# Install and load needed packages
+if (!requireNamespace("mclust", quietly = TRUE)) install.packages("mclust")
+if (!requireNamespace("ggplot2", quietly = TRUE)) install.packages("ggplot2")
+
+library(magrittr)
+library(matrixStats)
+library(mclust)
+library(ggplot2)
+
+# Read and prepare data from .CSV files
+metadata <- readr::read_tsv(metadata_file)
+expressions <- readr::read_tsv(data_file)
+```
+
+## Preps data
+
+```{r data_prep}
+# Extend expressions with their variance
+expressions$variance <- apply(expressions[,-1], 1, var) 
+
+# Order data frame by variance using order()
+exp_ordered <- expressions[order(-expressions$variance), ]
+
+# Select top genes with the highest variance
+exp_top10 <- exp_ordered[1:10, ]
+exp_top100 <- exp_ordered[1:100, ]
+exp_top1000 <- exp_ordered[1:1000, ]
+exp_top5000 <- exp_ordered[1:5000, ]
+exp_top10000 <- exp_ordered[1:10000, ]
+
+# Take top 5000 genes
+exp_matrix <- as.matrix(exp_top5000[, -c(1, ncol(exp_top5000))])  # Removes gene and variance columns
+exp_matrix <- t(exp_matrix)  # Transposes matrix for gmm
+```
+
+## Gaussian mixture model clustering
+
+```{r gmm_function}
+run_gmm_clustering <- function(num_genes) {
+  # Select top genes with the highest variance
+  exp_top <- exp_ordered[1:num_genes, ]
+  
+  # Prepare matrix for gmm
+  exp_matrix <- as.matrix(exp_top[, -c(1, ncol(exp_top))])  # Remove gene and variance columns
+  exp_matrix <- t(exp_matrix)  # Transpose matrix for gmm
+  
+  # Determine optimal model
+  optimal_model <- Mclust(exp_matrix)
+  
+  # Get optimal number of clusters
+  k_optimal <- optimal_model$G
+  
+  # Create data frame with the first two principal components and cluster assignments
+  pca_result <- prcomp(exp_matrix)
+  plot_data <- data.frame(
+    PC1 = pca_result$x[, 1],
+    PC2 = pca_result$x[, 2],
+    Cluster = as.factor(optimal_model$classification)
+  )
+  
+  # Plot results
+  plot <- ggplot(plot_data, aes(x = PC1, y = PC2, color = Cluster)) +
+    geom_point(alpha = 0.6) +
+    theme_minimal() +
+    labs(title = paste("GMM Clustering Results\n(k =", k_optimal, ", genes =", num_genes, ")"),
+         x = "Principal Component 1",
+         y = "Principal Component 2")
+  
+  # Save plot
+  ggsave(file.path(plots_dir, paste0("gmm_clustering_plot_", num_genes, "_genes.png")), 
+         plot = plot, width = 10, height = 8)
+  
+  # Print summary
+  cat("Analysis for", num_genes, "genes:\n")
+  cat("Optimal number of clusters:", k_optimal, "\n\n")
+  
+  # Return cluster assignments
+  return(optimal_model$classification)
+}
+```
+
+## Run with different number of genes
+
+```{r run_clustering}
+# Run clustering with different numbers of genes
+gene_numbers <- c(10, 100, 1000, 5000, 10000)
+cluster_results <- list()
+
+for (num_genes in gene_numbers) {
+  cluster_results[[as.character(num_genes)]] <- run_gmm_clustering(num_genes)
+}
+```
+
+## Perform Chi-Square tests
+
+```{r chi_square_tests}
+library(reshape2)
+library(knitr)
+library(writexl)
+
+perform_chi_square <- function(cluster1, cluster2) {
+  cont_table <- table(cluster1, cluster2)
+  
+  # Perform chi-square test
+  chi_test <- chisq.test(cont_table)
+  
+  return(chi_test$p.value)
+}
+
+# Create empty matrix to store p-values
+p_value_matrix <- matrix(NA, nrow = length(gene_numbers), ncol = length(gene_numbers))
+rownames(p_value_matrix) <- colnames(p_value_matrix) <- gene_numbers
+
+# Perform chi-square tests for each pair of clustering results
+for (i in 1:length(gene_numbers)) {
+  for (j in 1:length(gene_numbers)) {
+    if (i != j) {
+      p_value_matrix[i, j] <- perform_chi_square(
+        cluster_results[[as.character(gene_numbers[i])]], 
+        cluster_results[[as.character(gene_numbers[j])]]
+      )
+    }
+  }
+}
+
+# Format p-values for display
+p_value_matrix_formatted <- format(p_value_matrix, scientific = TRUE, digits = 3)
+
+# Create table for display
+kable(p_value_matrix_formatted, caption = "Chi-Square Test P-values Between Clustering Results")
+
+# Prepare data for saving
+p_value_df <- as.data.frame(p_value_matrix)
+p_value_df <- cbind(Genes = rownames(p_value_df), p_value_df)
+
+# Save the p-value matrix
+write.csv(p_value_df, file = file.path("gmm_chi_square_results.csv"), row.names = FALSE)
+write_xlsx(p_value_df, path = file.path("gmm_chi_square_results.xlsx"))
+
+cat("Chi-square test results have been saved to:", file.path("gmm_chi_square_results.csv"), "and", file.path("gmm_chi_square_results.xlsx"))
+```
+
+## Alluvial diagram
+
+```{r alluvial_diagram}
+library(ggalluvial)
+library(dplyr)
+
+# Prepare data
+alluvial_data <- data.frame(
+  Sample = rownames(exp_matrix)
+)
+
+for (num_genes in gene_numbers) {
+  alluvial_data[[paste0("Genes_", num_genes)]] <- factor(cluster_results[[as.character(num_genes)]])
+}
+
+# Melt data frame
+alluvial_data_long <- alluvial_data %>%
+  tidyr::pivot_longer(cols = -Sample, names_to = "Clustering", values_to = "Cluster")
+
+# Create alluvial plot
+alluvial_plot <- ggplot(alluvial_data_long,
+       aes(x = Clustering, stratum = Cluster, alluvium = Sample, fill = Cluster, label = Cluster)) +
+  geom_flow(stat = "alluvium", lode.guidance = "frontback", color = "darkgray") +
+  geom_stratum() +
+  geom_text(stat = "stratum", aes(label = after_stat(stratum))) +
+  theme_minimal() +
+  theme(legend.position = "none") +
+  labs(title = "Cluster Membership Changes Across Different Gene Numbers",
+       x = "Number of Genes Used",
+       y = "Samples")
+
+# Display plot
+print(alluvial_plot)
+
+# Save plot
+ggsave(file.path(plots_dir, "gmm_alluvial_diagram.png"), alluvial_plot, width = 12, height = 8)
+
+cat("Alluvial diagram has been saved to:", file.path(plots_dir, "gmm_alluvial_diagram.png"))
+```
