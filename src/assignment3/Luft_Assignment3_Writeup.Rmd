@@ -1,0 +1,33 @@
+---
+title: "Luft_Assignment_3_Writeup"
+output: html_document
+date: "2024-10-21"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+I used Consensus Cluster Plus as my clustering algorithm. Due to the limits of my dataset, only 1980 genes were available for clustering after removing ones with "NA" differential expression significance. I ran Consensus Cluster Plus with all 1980 genes for k=6 (used on the tutorial), k=10, and k=20. I then ran it at k=10 for the top 10 differentially expressed genes, top 100, and top 1000 (g=10, g=100, g=1000). The full results for each can be found in the results -> consensusClusterPlusResults folder, subdivided by each test.
+
+The way Consensus Cluster Plus works, when you put in a k, it runs clustering for all k values up to that k; an input of k=6 returns results for k=2, k=3, k=4, k=5, and k=6, along with some graphs showing the changes as k increases. For k=2, 
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
