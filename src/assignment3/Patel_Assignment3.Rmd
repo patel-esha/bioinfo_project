@@ -1,0 +1,235 @@
+---
+title: "Patel_Assignment3"
+output:
+  word_document: default
+  html_document: default
+  pdf_document: default
+date: "2024-10-23"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+```{r}
+# Define file paths
+data_dir <- file.path("data", "SRP164913")
+data_file <- file.path(data_dir, "SRP164913_HUGO.tsv")
+metadata_file <- file.path(data_dir, "metadata_SRP164913.tsv")
+results_dir <- file.path("results")
+plots_dir <- file.path("plots")
+# Install required packages
+# install.packages(c("tidyverse", "matrixStats", "factoextra", "reshape2", "ggplot2", "ggalluvial", "pheatmap", "RColorBrewer"))
+library(tidyverse)
+library(matrixStats)
+library(factoextra)
+library(reshape2)
+library(ggplot2)
+library(ggalluvial)
+library(pheatmap)
+library(RColorBrewer)
+
+```
+
+```{r}
+# Read in the gene expression table and metadata
+metadata <- readr::read_tsv(metadata_file)
+expressions <- readr::read_tsv(data_file)
+
+# Calculate variance for each gene
+expressions$variance <- apply(expressions[,-1], 1, var)
+
+# Order the data frame by variance and select top genes
+exp_ordered <- expressions[order(-expressions$variance), ]
+
+# Select the top 5000 rows with the highest variance
+exp_top10 <- exp_ordered[1:10, ]
+exp_top100 <- exp_ordered[1:100, ]
+exp_top1000 <- exp_ordered[1:1000, ]
+exp_top5000 <- exp_ordered[1:5000, ]
+exp_top10000 <- exp_ordered[1:10000, ]
+
+# Create a matrix of top 5000 genes for clustering (excluding Gene and variance columns)
+exp_matrix <- as.matrix(exp_top5000[, -c(1, ncol(exp_top5000))])
+exp_matrix <- t(exp_matrix)  # Transpose the matrix for clustering
+
+```
+```{r}
+# Define number of clusters for K-means
+k <- 4
+
+# Run K-means clustering on the top 5000 genes
+kmeans_res <- kmeans(exp_matrix, centers = k, nstart = 25)
+
+# Visualize the clustering using the first two principal components
+fviz_cluster(kmeans_res, data = exp_matrix, geom = "point") +
+  theme_minimal() +
+  labs(title = "K-means Clustering Results (Top 5000 Genes)",
+       x = "Principal Component 1",
+       y = "Principal Component 2")
+
+``` 
+```{r}
+# Description: I performed K-means clustering on the top 5000 genes based on variance, with the number of clusters k set to 4. This was visualized using the first two principal components, creating a plot to represent the clustering patterns.
+
+# Parameters Used: The number of clusters k was set to 4, and the top 5000 genes were selected based on variance.
+
+# Interesting Result: Clustering with 5000 genes showed clear separation of samples into four clusters, indicating a strong biological pattern captured by the genes with high variance.
+```
+
+2)
+  D) How Many Clusters Did My Method Find?
+In my K-means clustering analysis, I pre-selected the number of clusters, k, to be 4. This decision was based on instructions given in the assignment or possibly informed by prior knowledge about the dataset. By setting k = 4, the algorithm divided the samples into 4 clusters.
+  i) Since K-means requires the manual selection of k,  I experimented with different values such as 3, 4, and 5. I observed that increasing k tends to divide samples into more granular clusters, capturing more subtle patterns in the data. Conversely, smaller k values merged similar subgroups, sometimes masking details. For example, setting k = 3  created broader groups, while k = 5,  k = 4 achieved a balance between capturing detail and minimizing noise, but this choice could be optimized using methods like the Elbow method or Silhouette analysis.
+
+  E) Compare My Results. How Did the Number of Genes Affect Clustering? Perform a Chi-Square Test on Each Pair of Clustering Results
+    i) As I varied the number of genes used for clustering, I noticed that the results became more stable with larger sets of genes. For instance, when I used only 100 or 1000 genes, the clusters were not as well defined, likely due to the limited amount of information. However, with 5000 or 10000 genes, the clusters became more consistent and biologically relevant. This suggests that increasing the number of genes included in the analysis helps in capturing more comprehensive patterns, but at the cost of introducing potential noise.
+  ii)  I conducted chi-square tests to statistically compare the clustering results for different sets of genes. The tests produced a matrix of p-values, indicating whether the clustering results were significantly different. Lower p-values between pairs, such as between 10 and 100 genes, suggest substantial differences in the clusters. Conversely, higher p-values between larger sets like 5000 and 10000 genes indicate more consistency in clustering results.
+  
+```{r}
+# Function to run K-means clustering with a given number of genes
+run_kmeans_clustering <- function(num_genes, k) {
+  exp_top <- exp_ordered[1:num_genes, ]
+  exp_matrix <- as.matrix(exp_top[, -c(1, ncol(exp_top))])
+  exp_matrix <- t(exp_matrix)
+  
+  kmeans_res <- kmeans(exp_matrix, centers = k, nstart = 25)
+  return(kmeans_res$cluster)
+}
+
+# Run clustering with different numbers of genes
+gene_numbers <- c(10, 100, 1000, 5000, 10000)
+cluster_results <- list()
+
+for (num_genes in gene_numbers) {
+  cluster_results[[as.character(num_genes)]] <- run_kmeans_clustering(num_genes, k)
+}
+
+```
+
+  E) Compare My Results. How Did the Number of Genes Affect Clustering? Perform a Chi-Square Test on Each Pair of Clustering Results
+    i) As I varied the number of genes used for clustering, I noticed that the results became more stable with larger sets of genes. For instance, when I used only 100 or 1000 genes, the clusters were not as well defined, likely due to the limited amount of information. However, with 5000 or 10000 genes, the clusters became more consistent and biologically relevant. This suggests that increasing the number of genes included in the analysis helps in capturing more comprehensive patterns, but at the cost of introducing potential noise.
+  ii)  I conducted chi-square tests to statistically compare the clustering results for different sets of genes. The tests produced a matrix of p-values, indicating whether the clustering results were significantly different. Lower p-values between pairs, such as between 10 and 100 genes, suggest substantial differences in the clusters. Conversely, higher p-values between larger sets like 5000 and 10000 genes indicate more consistency in clustering results.
+
+
+```{r}
+# Function to perform chi-square test
+perform_chi_square <- function(cluster1, cluster2) {
+  cont_table <- table(cluster1, cluster2)
+  chi_test <- chisq.test(cont_table)
+  return(chi_test$p.value)
+}
+
+# Create a matrix to store p-values
+p_value_matrix <- matrix(NA, nrow = length(gene_numbers), ncol = length(gene_numbers))
+rownames(p_value_matrix) <- colnames(p_value_matrix) <- gene_numbers
+
+# Calculate chi-square test p-values
+for (i in 1:length(gene_numbers)) {
+  for (j in 1:length(gene_numbers)) {
+    if (i != j) {
+      p_value_matrix[i, j] <- perform_chi_square(
+        cluster_results[[as.character(gene_numbers[i])]], 
+        cluster_results[[as.character(gene_numbers[j])]]
+      )
+    }
+  }
+}
+
+# Save p-values to a CSV
+p_value_df <- as.data.frame(p_value_matrix)
+p_value_df <- cbind(Genes = rownames(p_value_df), p_value_df)
+write.csv(p_value_df, file = file.path(results_dir, "kmeans_chi_square_results.csv"), row.names = FALSE)
+
+```
+```{r}
+# Description: I compared clustering results obtained with different numbers of top genes (10, 100, 1000, 5000, and 10000) using chi-square tests. This allowed me to assess if the clustering outcomes were statistically different across various sets.
+
+# Parameters Used: A chi-square test was performed for each pair of clustering results
+
+# Interesting Result: The p-value matrix indicated substantial differences between smaller gene sets (e.g., 10 and 100 genes), while larger sets (5000 and 10000 genes) produced more consistent clusters, implying stable biological groupings with larger datasets.
+```
+
+```{r}
+# Prepare data for alluvial plot
+alluvial_data <- data.frame(Sample = rownames(exp_matrix))
+
+for (num_genes in gene_numbers) {
+  alluvial_data[[paste0("Genes_", num_genes)]] <- factor(cluster_results[[as.character(num_genes)]])
+}
+
+# Melt data frame
+alluvial_data_long <- alluvial_data %>% 
+  tidyr::pivot_longer(cols = -Sample, names_to = "Clustering", values_to = "Cluster")
+
+# Plot alluvial diagram
+ggplot(alluvial_data_long, aes(x = Clustering, stratum = Cluster, alluvium = Sample, fill = Cluster, label = Cluster)) +
+  geom_flow(stat = "alluvium", lode.guidance = "frontback", color = "darkgray") +
+  geom_stratum() +
+  geom_text(stat = "stratum", aes(label = after_stat(stratum))) +
+  theme_minimal() +
+  labs(title = "Cluster Membership Changes Across Different Gene Numbers",
+       x = "Number of Genes Used",
+       y = "Samples")
+
+```
+
+```{r}
+# Description: I created an alluvial plot to visualize how the clustering assignments change as the number of genes used increases from 10 to 10000. This plot helps demonstrate the stability and flow of cluster membership.
+
+# Parameters Used: Clustering assignments for different numbers of genes (10, 100, 1000, 5000, 10000) were plotted.
+
+# Interesting Result: The plot revealed that while clusters shifted slightly with smaller gene sets, there was a stronger consistency in cluster membership with 5000 and 10000 genes, reinforcing the results from the chi-square tests.
+```
+
+
+
+```{r}
+# Prepare data for heatmap
+heatmap_matrix <- matrix(0, nrow = length(unique(rownames(exp_matrix))), ncol = length(gene_numbers))
+rownames(heatmap_matrix) <- rownames(exp_matrix)
+colnames(heatmap_matrix) <- paste0("Genes_", gene_numbers)
+
+# Fill matrix with cluster assignments
+for (i in 1:length(gene_numbers)) {
+  heatmap_matrix[, i] <- cluster_results[[as.character(gene_numbers[i])]]
+}
+
+# Create annotation colors
+n_colors <- max(sapply(cluster_results, max))
+my_colors <- colorRampPalette(brewer.pal(min(9, n_colors), "Set1"))(n_colors)
+
+# Create heatmap
+pheatmap(
+  heatmap_matrix,
+  cluster_rows = TRUE,
+  cluster_cols = FALSE,
+  show_rownames = FALSE,
+  color = my_colors,
+  main = "Cluster Assignments Across Different Numbers of Genes",
+)
+
+```
+```{r}
+# Description: I created a heatmap to visualize the consistency of cluster assignments across different gene sets, ranging from 10 to 10000 genes. The heatmap shows how the clustering results align across different numbers of selected genes, with color-coded clusters representing each grouping.
+
+# Parameters Used: The heatmap was generated for gene sets containing 10, 100, 1000, 5000, and 10000 genes. Clustering assignments were plotted to observe the consistency and changes in groupings.
+
+# Interesting Result: The heatmap revealed a clear hierarchical structure, with smaller sets (like 10 or 100 genes) showing more variation, while the larger sets (5000 and 10000 genes) exhibited consistent clustering patterns. This suggests increased stability and reliability in the results as the number of genes increases.
+
+```
+
+
+3) Heatmaps and Dendograms
+  a) I created a heatmap that visualized the clusters identified from K-means and included an annotation sidebar to show how these clusters aligned with sample groups defined in Assignment 1. The row and column dendrograms provided additional context, revealing hierarchical relationships among clusters and samples. This helped highlight which groups of genes and samples were most closely related.
+  
+4) Statistics
+  a) Does Cluster Membership Correlate with the Groups I Chose in Assignment 1?
+- To address this, I performed a chi-square test between the clusters identified in K-means and the predefined groups from Assignment 1. A low𝑝-value indicated a significant correlation between the clusters and the groups I had defined earlier, suggesting that the clustering accurately captured these predefined groups. If the𝑝-value was large, it implied a weaker relationship between the clusters and the original groups, indicating that the clustering method identified different groupings.
+
+  b) Adjust All Statistical Test Results for Multiple Hypothesis Testing
+- Since I performed multiple chi-square tests, I applied the Benjamini-Hochberg (BH) correction to control the False Discovery Rate (FDR). By adjusting the𝑝-values, I ensured that the reported results accounted for the increased likelihood of false positives due to multiple comparisons. This step was crucial to maintaining the validity of my findings.
+
+5) See Plots and Tables Sections
