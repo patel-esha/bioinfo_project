@@ -36,6 +36,7 @@ library(magrittr)
 library(ComplexHeatmap)
 #install.packages("ggalluvial")
 library(ggalluvial)
+#install.packages("flextable")
 set.seed(1234)
 
 
@@ -474,7 +475,3 @@ chi_table_df$p_adj <- p_adj_list
 #save the table to a file
 fileName <- file.path(results_path, "ConsensusClusterPlus_X-Squared_Table.csv")
 write_csv(chi_table_df, fileName)
-
-
-
-
