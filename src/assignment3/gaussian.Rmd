@@ -197,3 +197,44 @@ ggsave(file.path(plots_dir, "gmm_alluvial_diagram.png"), alluvial_plot, width = 
 
 cat("Alluvial diagram has been saved to:", file.path(plots_dir, "gmm_alluvial_diagram.png"))
 ```
+## Create heatmap
+
+```{r create_heatmap}
+# Install required packages if not already installed
+if (!requireNamespace("pheatmap", quietly = TRUE)) install.packages("pheatmap")
+if (!requireNamespace("RColorBrewer", quietly = TRUE)) install.packages("RColorBrewer")
+
+# Load libraries
+library(pheatmap)
+library(RColorBrewer)
+
+# Create matrix for heatmap
+heatmap_matrix <- matrix(0, nrow = length(unique(rownames(exp_matrix))), 
+                        ncol = length(gene_numbers))
+rownames(heatmap_matrix) <- rownames(exp_matrix)
+colnames(heatmap_matrix) <- paste0("Genes_", gene_numbers)
+
+# Fill matrix with cluster assignments
+for (i in 1:length(gene_numbers)) {
+  heatmap_matrix[,i] <- cluster_results[[as.character(gene_numbers[i])]]
+}
+
+# Create annotation colors
+n_colors <- max(sapply(cluster_results, max))
+my_colors <- colorRampPalette(brewer.pal(min(9, n_colors), "Set1"))(n_colors)
+
+# Create heatmap
+heatmap_plot <- pheatmap(
+  heatmap_matrix,
+  cluster_rows = TRUE,
+  cluster_cols = FALSE,
+  show_rownames = FALSE,
+  color = my_colors,
+  main = "Cluster Assignments Across Different Numbers of Genes",
+  filename = file.path(plots_dir, "gmm_clustering_heatmap.png"),
+  width = 10,
+  height = 12
+)
+
+cat("Heatmap has been saved to:", file.path(plots_dir, "gmm_clustering_heatmap.png"))
+```
