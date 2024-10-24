@@ -1,40 +1,241 @@
+
 # Define the file paths 
+getwd()
 data_dir <- file.path("data", "SRP164913")
 data_file <- file.path(data_dir, "SRP164913_HUGO.tsv")
-metadata_file <- file.path(data_dir, "metadata_SRP164913.tsv")
 results_dir <- file.path("results")
 plots_dir <- file.path("plots")
+metadata_file <- file.path(data_dir, "metadata_SRP164913.tsv")
+metadata <- readr::read_tsv(metadata_file)
 
 # install.packages("matrixStats")
 # install.packages("factoextra")
+# install.packages("ggalluvial")
+# install.packages("pheatmap")
 library(magrittr)
 library(matrixStats)
 library(cluster)
 library("factoextra")
+library(dplyr)
+library(ggalluvial)
+
+
 
 # Read in the gene expression table
+expression_df <- readr::read_tsv(data_file) %>%
+  tibble::column_to_rownames("Symbol")
+  
+#get rid of ham/tsp group to make it a two group problem
+culledMeta <- metadata[!(metadata$refinebio_disease=="ham/tsp"),]
+discardColumns <- metadata[(metadata$refinebio_disease=="ham/tsp"),]
+discardColumns = as.vector(discardColumns$refinebio_accession_code)
+metadata <- culledMeta
+length(discardColumns)
+#Preserve only columns in expression_df that match one of the accession ids
+culled_expression_df = expression_df[,!(names(expression_df) %in% discardColumns)]
+#check samples match (got rid of ham/tsp people)- 62 metadata cols, 63 expression (1 col for gene names)
+all.equal(colnames(culled_expression_df), metadata$refinebio_accession_code)
 
-# Read in data and metadata TSV file and make Gene column into row names
-metadata <- readr::read_tsv(metadata_file)
-expressions <- readr::read_tsv(data_file)
-
-# extend the expressions with their varriance
-expressions$variance <- apply(expressions[,-1], 1, var) 
-
-# Order the data frame by variance using order()
-exp_ordered <- expressions[order(-expressions$variance), ]
+# log scale
+epsilon <- 1e-6
+culled_expression_df <- log2(culled_expression_df + epsilon)
+# order genes by variance
+culled_expression_df$variance <- apply(culled_expression_df, 1, var) 
+exp_ordered <- culled_expression_df[order(culled_expression_df$variance, decreasing = TRUE), ]
+expressions <- select(exp_ordered, -variance)
 
 # Select the top 5000 rows with the highest variance
-exp_top10 <- exp_ordered[1:10, ]
-exp_top100 <- exp_ordered[1:100, ]
-exp_top1000 <- exp_ordered[1:1000, ]
-exp_top5000 <- exp_ordered[1:5000, ]
-exp_top10000 <- exp_ordered[1:10000, ]
+# we have to transpose since the pam method wants each row to be an observation.
 
-k <- 4
-pam_res <- pam(exp_top10000, k = k)
-head(exp_top5000)
+exp_top10 <- expressions[1:10, ]
+exp_top100 <- expressions[1:100, ]
+exp_top1000 <- expressions[1:1000, ]
+exp_top5000 <- expressions[1:5000, ]
+exp_top10000 <- expressions[1:10000, ]
 
+# optimal number of clusters
+pam_num_clust <- fviz_nbclust(exp_top100, pam, k.max = 6, verbose = TRUE, print.summary = TRUE, method = "silhouette")
+ggplot2::ggsave(file.path(plots_dir, "pam_num_clust.png"), plot = pam_num_clust, width = 8, height = 6, dpi = 300)
+
+# 100
+k <- 2
+pam_res_k2_n100 <- pam(exp_top100, k = k, diss=FALSE)
 # plot
-fviz_cluster(pam_res,  geom = "point")
+k2n100 <- fviz_cluster(pam_res_k2_n100,  geom = "point")
+ggplot2::ggsave(file.path(plots_dir, "pam_k2-n100.png"), plot = k2n100, width = 8, height = 6, dpi = 300)
 
+
+# 100 k3
+k <- 3
+pam_res_k3_n100 <- pam(exp_top100, k = k, diss=FALSE)
+# plot
+k3n100 <- fviz_cluster(pam_res_k3_n100,  geom = "point")
+ggplot2::ggsave(file.path(plots_dir, "pam_k3-n100.png"), plot = k3n100, width = 8, height = 6, dpi = 300)
+
+# 100 k4
+k <- 4
+pam_res_k4_n100 <- pam(exp_top100, k = k, diss=FALSE)
+# plot
+k4n100 <- fviz_cluster(pam_res_k4_n100,  geom = "point")
+ggplot2::ggsave(file.path(plots_dir, "pam_k4-n100.png"), plot = k4n100, width = 8, height = 6, dpi = 300)
+
+pam_k2_n100_sil <- fviz_silhouette(pam_res_k2_n100, label=FALSE)
+ggplot2::ggsave(file.path(plots_dir, "pam_k2-n100-sil.png"), plot = pam_k2_n100_sil, width = 8, height = 6, dpi = 300)
+
+# 100 k5
+k <- 5
+pam_res_k5_n100 <- pam(exp_top100, k = k, diss=FALSE)
+# plot
+k5n100 <- fviz_cluster(pam_res_k5_n100,  geom = "point")
+ggplot2::ggsave(file.path(plots_dir, "pam_k5-n100.png"), plot = k5n100, width = 8, height = 6, dpi = 300)
+
+
+# differnt n samples
+
+# 100 k2
+k <- 2
+pam_res_k2_n100 <- pam(exp_top100, k = k, diss=FALSE)
+# plot
+k2n100 <- fviz_cluster(pam_res_k2_n100,  geom = "point")
+ggplot2::ggsave(file.path(plots_dir, "pam_k2-n100.png"), plot = k2n100, width = 8, height = 6, dpi = 300)
+
+# 1000 k2
+k <- 2
+pam_res_k2_n1000 <- pam(exp_top1000, k = k, diss=FALSE)
+# plot
+k2n1000 <- fviz_cluster(pam_res_k2_n1000,  geom = "point")
+ggplot2::ggsave(file.path(plots_dir, "pam_k2-n1000.png"), plot = k2n1000, width = 8, height = 6, dpi = 300)
+
+
+# 5000 k2
+k <- 2
+pam_res_k2_n5000 <- pam(exp_top5000, k = k, diss=FALSE)
+# plot
+k2n5000 <- fviz_cluster(pam_res_k2_n5000,  geom = "point")
+ggplot2::ggsave(file.path(plots_dir, "pam_k2-n5000.png"), plot = k2n5000, width = 8, height = 6, dpi = 300)
+
+
+# 10000 k2
+k <- 2
+pam_res_k2_n10000 <- pam(exp_top10000, k = k, diss=FALSE)
+# plot
+k2n10000 <- fviz_cluster(pam_res_k2_n10000,  geom = "point")
+ggplot2::ggsave(file.path(plots_dir, "pam_k2-n10000.png"), plot = k2n10000, width = 8, height = 6, dpi = 300)
+
+# Alluvial Data for different n
+
+alluvial_data <- data.frame(
+  n100 = pam_res_k2_n100$clustering,
+  n1000 = pam_res_k2_n1000$clustering,
+  n5000 = pam_res_k2_n5000$clustering,
+  n10000 = pam_res_k2_n10000$clustering
+)
+
+pam_alluvial <- ggplot(data = alluvial_data, 
+                       aes(axis1 = n100, axis2 = n1000, axis3 = n5000, axis4 = n10000, fill = factor(n1000))) +
+  geom_alluvium(aes(fill = factor(n10000)), width = 0.1, alpha = 0.8) +
+  geom_stratum(width = 0.1) +
+  geom_text(stat = "stratum", aes(label = after_stat(stratum))) +
+  theme_minimal() +
+  labs(title = "Hierarchical Clustering across Different Sample Sizes at k=2",
+       x = "Number of Samples") +
+  scale_x_discrete(breaks = c("100", "1000", "5000", "10000")) +
+  # Hide y-axis labels
+  theme(axis.text.y = element_blank(),
+        axis.title.y = element_blank()) +
+  # Use viridis palette for continuous data, you can also try scale_fill_viridis_d() for discrete
+  scale_fill_brewer(palette = "Spectral", name = "Cluster")  # More contrasting colors
+
+# Save the plot
+ggplot2::ggsave(file.path(plots_dir, "pam_alluvial_n.png"), plot = pam_alluvial, width = 8, height = 6, dpi = 300)
+
+
+# heatmap
+# Extract clustering results
+library(pheatmap) 
+clusters <- pam_res_k2_n100$clustering
+
+# Define a color vector for the clusters
+cluster_colors <- RColorBrewer::brewer.pal(length(unique(clusters)), "Set1")
+names(cluster_colors) <- unique(clusters)
+
+# Create an annotation data frame
+annotation_col <- data.frame(Cluster = factor(clusters))
+rownames(annotation_col) <- colnames(t(exp_top100))
+
+# Create an annotation color list
+annotation_colors <- list(Cluster = cluster_colors)
+
+# Plot the heatmap with pheatmap
+pheatmap::pheatmap(
+  mat = t(exp_top100),
+  annotation_col = annotation_col,
+  annotation_colors = annotation_colors,
+  cluster_rows = TRUE,      
+  cluster_cols = FALSE,     
+  show_colnames = FALSE,    
+  show_rownames = FALSE,
+  main = "Heatmap with PAM Clustering",
+  color = colorRampPalette(c("navy", "white", "firebrick3"))(50)
+)
+
+# Chi squared tests
+
+results <- list(
+  '2 vs 3' = chisq.test(table(pam_res_k2_n100$cluster, pam_res_k3_n100$cluster)),
+  '2 vs 4' = chisq.test(table(pam_res_k2_n100$cluster, pam_res_k4_n100$cluster)),
+  '2 vs 5' = chisq.test(table(pam_res_k2_n100$cluster, pam_res_k5_n100$cluster)),
+  '3 vs 4' = chisq.test(table(pam_res_k3_n100$cluster, pam_res_k4_n100$cluster)),
+  '3 vs 5' = chisq.test(table(pam_res_k3_n100$cluster, pam_res_k5_n100$cluster)),
+  '4 vs 5' = chisq.test(table(pam_res_k4_n100$cluster, pam_res_k5_n100$cluster))
+)
+
+# Extract and consolidate results into a data frame
+results_df <- do.call(rbind, lapply(names(results), function(name) {
+  res <- results[[name]]
+  data.frame(
+    Test = name,
+    Chi_Square = res$statistic,
+    DF = res$parameter,
+    P_Value = res$p.value
+  )
+}))
+
+# View the consolidated data frame
+print(results_df)
+
+metadata_filtered <- metadata %>% 
+  filter(refinebio_accession_code %in% colnames(exp_top100))
+
+gene_clusters <- pam_res_k2_n100$clustering
+
+predominant_clusters_per_sample <- apply(exp_top100, 2, function(sample_expr) {
+  sample_gene_indices <- which(sample_expr > 0)  # Assuming non-zero gene expression to map
+  sample_gene_clusters <- gene_clusters[sample_gene_indices]
+  
+  if (length(sample_gene_clusters) > 0) {
+    # Identify the most common cluster in the sample's expressed genes
+    predominant_cluster <- as.numeric(names(sort(table(sample_gene_clusters), decreasing=TRUE)[1]))
+    return(predominant_cluster)
+  } else {
+    return(NA)
+  }
+})
+
+metadata_with_clusters <- data.frame(
+  refinebio_accession_code = colnames(exp_top100),
+  predominant_cluster = predominant_clusters_per_sample
+)
+
+metadata_combined <- merge(metadata_with_clusters, metadata_filtered, by = "refinebio_accession_code")
+
+contingency_table <- table(
+  Disease = metadata_combined$refinebio_disease, 
+  Cluster = metadata_combined$predominant_cluster
+)
+
+print(contingency_table)
+
+chi_squared_result <- chisq.test(contingency_table)
+
+print(chi_squared_result)
