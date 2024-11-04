@@ -21,6 +21,7 @@ library(magrittr)
 library(dplyr)
 library(mlr3)
 library(mlr3learners)
+library(ComplexHeatmap)
 #library(mlr)
 #install.packages("mlr")
 
@@ -51,73 +52,139 @@ expressions <- select(exp_ordered, -variance)
 exp_top5000 <- expressions[1:5000, ]
 
 #Supervised Analysis: 
-#flip so rows are samples
-flipped <- data.frame(t(exp_top5000[]))
-#add disease as a column and turn them into numbers for the knn algo
-flipped$disease <- metadata$refinebio_disease
-flipped$disease[flipped$disease=="hc"] <- 1
-flipped$disease[flipped$disease=="ms"] <- 2
-
-#KNN
-
-#scale
-data_1 <- flipped
-data_1[,1:5000] <- scale(data_1[,1:5000])
-set.seed(123)
-
-size <- floor(0.4 * nrow(data_1))
-train_ind <- sample(seq_len(nrow(data_1)), size=size)
-train_labels <- data_1[train_ind, 5001]
-test_labels <- data_1[-train_ind, 5001]
-data_train <- data_1[train_ind, 1:5000]
-data_test <- data_1[-train_ind, 1:5000]
-print(round(sqrt(nrow(data_train))))
-
-predictions <- knn(train = data_train, test = data_test, cl = train_labels,k = round(sqrt(nrow(data_train))))
-print(predictions)
-cm <- table(test_labels, predictions)
-print(cm)
-
-#repeat with cluster numbers- grab the cluster assignments from consensusClusterPlus (saves vars in env)
+#get the cluster groups from consensusClusterPlus
 combined_metadata_knn <- metadata
 combined_metadata_knn$cluster_2k <- clusterAssignmentsk2g1980[[1]]
 combined_metadata_knn$cluster_3k <-clusterAssignmentsk3g1980[[1]]
-flipped_cluster2k <- data.frame(t(exp_top5000[]))
-#add cluster as a column
-flipped_cluster2k$cluster2k <- combined_metadata_knn$cluster_2k
-#split data
-flipped_cluster2k[,1:5000] <- scale(flipped_cluster2k[,1:5000])
-size <- floor(0.4 * nrow(flipped_cluster2k))
-train_ind <- sample(seq_len(nrow(flipped_cluster2k)), size=size)
-train_labels <- flipped_cluster2k[train_ind, 5001]
-test_labels <- flipped_cluster2k[-train_ind, 5001]
-data_train <- flipped_cluster2k[train_ind, 1:5000]
-data_test <- flipped_cluster2k[-train_ind, 1:5000]
-print(round(sqrt(nrow(data_train))))
-#do the predictions
-predictions_2k <- knn(train = data_train, test = data_test, cl = train_labels,k = round(sqrt(nrow(data_train))))
-print(predictions_2k)
-cm_2k <- table(test_labels, predictions_2k)
-print(cm_2k)
+knn_calculator_disease <- function(exp_df, ngenes){
+  #flip the data
+  flipped <- data.frame(t(exp_df[]))
+  #add disease as a column and turn them into numbers for the knn algo
+  flipped$disease <- metadata$refinebio_disease
+  flipped$disease[flipped$disease=="hc"] <- 1
+  flipped$disease[flipped$disease=="ms"] <- 2
+  #scale data
+  flipped[,1:ngenes] <- scale(flipped[,1:ngenes])
+  #separate data
+  size <- floor(0.6 * nrow(flipped))
+  train_ind <- sample(seq_len(nrow(flipped)), size=size)
+  train_labels <- flipped[train_ind, ngenes+1]
+  test_labels <- flipped[-train_ind, ngenes+1]
+  data_train <- flipped[train_ind, 1:ngenes]
+  data_test <- flipped[-train_ind, 1:ngenes]
+  #should be odd
+  #print(round(sqrt(nrow(data_train))))
+  
+  #do KNN
+  predictions <- knn(train = data_train, test = data_test, cl = train_labels,k = round(sqrt(nrow(data_train))))
+  #print(predictions)
+  predictionFull <- flipped
+  predictionFull$results <- flipped$disease
+  k=1
+  print(length(predictions))
+  for(i in nrow(predictionFull)){
+    if(i %in% train_ind){
+      
+    }
+    else{
+      predictionFull[i, ngenes+2] <- predictions[k]
+    }
+    k <- k+1
+  }
+  #print(predictionFull$results)
+  cm <- table(test_labels, predictions)
+  print(cm)
+  return(list(predictions, cm, predictionFull$results))
+}
 
-#repeat with k=3
-flipped_cluster3k <- data.frame(t(exp_top5000[]))
-#add cluster as a column
-flipped_cluster3k$cluster3k <- combined_metadata_knn$cluster_3k
-#split data
-flipped_cluster3k[,1:5000] <- scale(flipped_cluster3k[,1:5000])
-size <- floor(0.4 * nrow(flipped_cluster3k))
-train_ind <- sample(seq_len(nrow(flipped_cluster3k)), size=size)
-train_labels <- flipped_cluster3k[train_ind, 5001]
-test_labels <- flipped_cluster3k[-train_ind, 5001]
-data_train <- flipped_cluster3k[train_ind, 1:5000]
-data_test <- flipped_cluster3k[-train_ind, 1:5000]
-print(round(sqrt(nrow(data_train))))
-#do the predictions
-predictions_3k <- knn(train = data_train, test = data_test, cl = train_labels,k = round(sqrt(nrow(data_train))))
-print(predictions_3k)
-cm_3k <- table(test_labels, predictions_3k)
-print(cm_3k)
+knn_calculator_2k <- function(exp_df, ngenes){
+  #flip the data
+  flipped <- data.frame(t(exp_df[]))
+  #add disease as a column and turn them into numbers for the knn algo
+  flipped$cluster2k <- combined_metadata_knn$cluster_2k
+  
+  #scale data
+  flipped[,1:ngenes] <- scale(flipped[,1:ngenes])
+  #separate data
+  size <- floor(0.6 * nrow(flipped))
+  train_ind <- sample(seq_len(nrow(flipped)), size=size)
+  train_labels <- flipped[train_ind, ngenes+1]
+  test_labels <- flipped[-train_ind, ngenes+1]
+  data_train <- flipped[train_ind, 1:ngenes]
+  data_test <- flipped[-train_ind, 1:ngenes]
+  #should be odd
+  print(round(sqrt(nrow(data_train))))
+  
+  #do KNN
+  predictions <- knn(train = data_train, test = data_test, cl = train_labels,k = round(sqrt(nrow(data_train))))
+  #print(predictions)
+  predictionFull <- flipped
+  predictionFull$results <- flipped$cluster2k
+  k=1
+  print(length(predictions))
+  for(i in nrow(predictionFull)){
+    if(i %in% train_ind){
+      
+    }
+    else{
+      predictionFull[i, ngenes+2] <- predictions[k]
+    }
+    k <- k+1
+  }
+  #print(predictionFull$results)
+  cm <- table(test_labels, predictions)
+  print(cm)
+  return(list(predictions, cm, predictionFull$results))
+}
+
+knn_calculator_3k <- function(exp_df, ngenes){
+  #flip the data
+  flipped <- data.frame(t(exp_df[]))
+  #add disease as a column and turn them into numbers for the knn algo
+  flipped$cluster3k <- combined_metadata_knn$cluster_3k
+  
+  #scale data
+  flipped[,1:ngenes] <- scale(flipped[,1:ngenes])
+  #separate data
+  size <- floor(0.6 * nrow(flipped))
+  train_ind <- sample(seq_len(nrow(flipped)), size=size)
+  train_labels <- flipped[train_ind, ngenes+1]
+  test_labels <- flipped[-train_ind, ngenes+1]
+  data_train <- flipped[train_ind, 1:ngenes]
+  data_test <- flipped[-train_ind, 1:ngenes]
+  #should be odd
+  print(round(sqrt(nrow(data_train))))
+  
+  #do KNN
+  predictions <- knn(train = data_train, test = data_test, cl = train_labels,k = round(sqrt(nrow(data_train))))
+  #print(predictions)
+  predictionFull <- flipped
+  predictionFull$results <- flipped$cluster3k
+  k=1
+  print(length(predictions))
+  for(i in nrow(predictionFull)){
+    if(i %in% train_ind){
+      
+    }
+    else{
+      predictionFull[i, ngenes+2] <- predictions[k]
+    }
+    k <- k+1
+  }
+  #print(predictionFull$results)
+  cm <- table(test_labels, predictions)
+  print(cm)
+  return(list(predictions,cm,predictionFull$results))
+}
+
+
+#KNN
+knn_disease_og <- knn_calculator_disease(exp_top5000, 5000)
+
+#repeat with cluster numbers
+knn_2k_og <- knn_calculator_2k(exp_top5000, 5000)
+knn_3k_og <- knn_calculator_3k(exp_top5000, 5000)
+
 
 #calculate sample area under ROC curve (AUC) across the predictive models 
 #   created by each student on your team. To do this, generate a matrix of 
@@ -129,87 +196,6 @@ print(cm_3k)
 #         correlate (calculate a statistical test to evaluate this. Don’t 
 #         forget multiple test correction!)
 
-knn_calculator_disease <- function(exp_df, ngenes){
-  #flip the data
-  flipped <- data.frame(t(exp_df[]))
-  #add disease as a column and turn them into numbers for the knn algo
-  flipped$disease <- metadata$refinebio_disease
-  flipped$disease[flipped$disease=="hc"] <- 1
-  flipped$disease[flipped$disease=="ms"] <- 2
-  #scale data
-  flipped[,1:ngenes] <- scale(flipped[,1:ngenes])
-  set.seed(123)
-  #separate data
-  size <- floor(0.4 * nrow(flipped))
-  train_ind <- sample(seq_len(nrow(flipped)), size=size)
-  train_labels <- flipped[train_ind, ngenes+1]
-  test_labels <- flipped[-train_ind, ngenes+1]
-  data_train <- flipped[train_ind, 1:ngenes]
-  data_test <- flipped[-train_ind, 1:ngenes]
-  #should be odd
-  print(round(sqrt(nrow(data_train))))
-  
-  #do KNN
-  predictions <- knn(train = data_train, test = data_test, cl = train_labels,k = round(sqrt(nrow(data_train))))
-  #print(predictions)
-  cm <- table(test_labels, predictions)
-  print(cm)
-  return(predictions)
-}
-
-knn_calculator_2k <- function(exp_df, ngenes){
-  #flip the data
-  flipped <- data.frame(t(exp_df[]))
-  #add disease as a column and turn them into numbers for the knn algo
-  flipped$cluster2k <- combined_metadata_knn$cluster_2k
-
-  #scale data
-  flipped[,1:ngenes] <- scale(flipped[,1:ngenes])
-  set.seed(123)
-  #separate data
-  size <- floor(0.4 * nrow(flipped))
-  train_ind <- sample(seq_len(nrow(flipped)), size=size)
-  train_labels <- flipped[train_ind, ngenes+1]
-  test_labels <- flipped[-train_ind, ngenes+1]
-  data_train <- flipped[train_ind, 1:ngenes]
-  data_test <- flipped[-train_ind, 1:ngenes]
-  #should be odd
-  print(round(sqrt(nrow(data_train))))
-  
-  #do KNN
-  predictions <- knn(train = data_train, test = data_test, cl = train_labels,k = round(sqrt(nrow(data_train))))
-  #print(predictions)
-  cm <- table(test_labels, predictions)
-  print(cm)
-  return(predictions)
-}
-
-knn_calculator_3k <- function(exp_df, ngenes){
-  #flip the data
-  flipped <- data.frame(t(exp_df[]))
-  #add disease as a column and turn them into numbers for the knn algo
-  flipped$cluster3k <- combined_metadata_knn$cluster_3k
-  
-  #scale data
-  flipped[,1:ngenes] <- scale(flipped[,1:ngenes])
-  set.seed(123)
-  #separate data
-  size <- floor(0.4 * nrow(flipped))
-  train_ind <- sample(seq_len(nrow(flipped)), size=size)
-  train_labels <- flipped[train_ind, ngenes+1]
-  test_labels <- flipped[-train_ind, ngenes+1]
-  data_train <- flipped[train_ind, 1:ngenes]
-  data_test <- flipped[-train_ind, 1:ngenes]
-  #should be odd
-  print(round(sqrt(nrow(data_train))))
-  
-  #do KNN
-  predictions <- knn(train = data_train, test = data_test, cl = train_labels,k = round(sqrt(nrow(data_train))))
-  #print(predictions)
-  cm <- table(test_labels, predictions)
-  print(cm)
-  return(predictions)
-}
 
 #repeat with dif num of genes
 exp_top10 <- expressions[1:10, ]
@@ -231,8 +217,69 @@ t1000_2k_knn <- knn_calculator_2k(exp_top1000, 1000)
 t1000_3k_knn <- knn_calculator_3k(exp_top1000, 1000)
 
 #AUC for each
+truePos <- function(cm){
+  val <- (cm[[1]][1] / (cm[[1]][1] + cm[[1]][2]))
+  if(is.nan(val)){
+    return(0)
+  }
+  return(val)
+}
+falsePos <- function(cm){
+  val <- (cm[[1]][3] / (cm[[1]][3] + cm[[1]][4]))
+  if(is.nan(val)){
+    return(0)
+  }
+  return(val)
+}
+#coords = {true pos, false pos} -> {y,x} oops
+t10_disease_coords = c( truePos(t10_disease_knn[2]), falsePos(t10_disease_knn[2]) )
+t100_disease_coords = c( truePos(t100_disease_knn[2]), falsePos(t100_disease_knn[2]) )
+t1000_disease_coords = c( truePos(t1000_disease_knn[2]), falsePos(t1000_disease_knn[2]) )
+t5000_disease_coords = c( truePos(knn_disease_og[2]), falsePos(knn_disease_og[2]) )
 
+t10_2k_coords = c( truePos(t10_2k_knn[2]), falsePos(t10_2k_knn[2]) )
+t100_2k_coords = c( truePos(t100_2k_knn[2]), falsePos(t100_2k_knn[2]) )
+t1000_2k_coords = c( truePos(t1000_2k_knn[2]), falsePos(t1000_2k_knn[2]) )
+t5000_2k_coords = c( truePos(knn_2k_og[2]), falsePos(knn_2k_og[2]) )
+
+t10_3k_coords = c( truePos(t10_3k_knn[2]), falsePos(t10_3k_knn[2]) )
+t100_3k_coords = c( truePos(t100_3k_knn[2]), falsePos(t100_3k_knn[2]) )
+t1000_3k_coords = c( truePos(t1000_3k_knn[2]), falsePos(t1000_3k_knn[2]) )
+t5000_3k_coords = c( truePos(knn_3k_og[2]), falsePos(knn_3k_og[2]) )
+
+roc_disease_x = c(t10_disease_coords[2], t100_disease_coords[2], t1000_disease_coords[2], t5000_disease_coords[2])
+roc_disease_y = c(t10_disease_coords[1], t100_disease_coords[1], t1000_disease_coords[1], t5000_disease_coords[1])
+plot(roc_disease_x, roc_disease_y)
+
+roc_2k_x = c(t10_2k_coords[2], t100_2k_coords[2], t1000_2k_coords[2], t5000_2k_coords[2])
+roc_2k_y = c(t10_2k_coords[1], t100_2k_coords[1], t1000_2k_coords[1], t5000_2k_coords[1])
+plot(roc_2k_x, roc_2k_y)
+
+roc_3k_x = c(t10_3k_coords[2], t100_3k_coords[2], t1000_3k_coords[2], t5000_3k_coords[2])
+roc_3k_y = c(t10_3k_coords[1], t100_3k_coords[1], t1000_3k_coords[1], t5000_3k_coords[1])
+plot(roc_3k_x, roc_3k_y)
 
 #heatmaps and dendrograms
+#put together predictions / training based on indices for the knn results 
+print(knn_disease_og[3])
+print(length(t(knn_disease_og[3])[1]))
+
+
+column_ha = HeatmapAnnotation(groups = as.factor(metadata$refinebio_disease), predictedgroups = as.factor(t(knn_disease_og[3])[[1]]), predicted2k = as.factor(t(knn_2k_og[3])[[1]]), predicted3k = as.factor(t(knn_3k_og[3])[[1]]))
+
+png("results/knnResults/knnHeatmap.png")
+
+ht <- Heatmap(
+  as.matrix(exp_top1000), 
+  name="KNN Heatmap, 1000 Genes", 
+  top_annotation = column_ha,
+  column_title = "Samples", column_title_side = "bottom", 
+  row_title = "Genes", row_title_side = "right" ,
+  show_column_names = FALSE,
+  show_row_names = FALSE
+)
+
+draw(ht)
+dev.off()
 
 
