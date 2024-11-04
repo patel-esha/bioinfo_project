@@ -418,7 +418,7 @@ column_ha = HeatmapAnnotation(groups = as.factor(combined_metadata$refinebio_dis
 #make the heatmap
 png("results/consensusClusterPlusResults/consensusClusterPlusHeatmap.png")
 ht <- Heatmap(
-  diff_genes_expr_df, 
+  as.matrix(exp_top1000), 
   name="Cluster Heatmap", 
   top_annotation = column_ha,
   column_title = "Samples", column_title_side = "bottom", 
