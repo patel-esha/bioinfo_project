@@ -8,7 +8,8 @@ results_dir <- file.path("results")
 plots_dir <- file.path("plots")
 diff_expr_rslts_file <- file.path(results_dir, "SRP164913_diff_expr_results.tsv")
 #load in the expression data and metadata
-expression_df <- readr::read_tsv(data_file)
+expression_df <- readr::read_tsv(data_file) %>%
+  tibble::column_to_rownames("Symbol")
 metadata <- readr::read_tsv(metadata_file)
 #load in differential expression data
 diff_expr <- readr::read_tsv(diff_expr_rslts_file)
@@ -42,17 +43,30 @@ set.seed(1234)
 
 #subset data into top 5000 differentially expressed genes
 #remove NA padj values (correspond to pvals of 1)
-diff_expr_nona <- na.omit(diff_expr)
-diff_expr_ordered <- diff_expr_nona[order(diff_expr_nona$padj),] #sort so smallest padj to largest
+#diff_expr_nona <- na.omit(diff_expr)
+#diff_expr_ordered <- diff_expr_nona[order(diff_expr_nona$padj),] #sort so smallest padj to largest
 #only has 1980 rows after removing all NAs. 
-dim(diff_expr_ordered) 
+#dim(diff_expr_ordered) 
 #list of gene names in order that are the top differentially expressed
-top_genes <- diff_expr[1:1980,1] 
+#top_genes <- diff_expr[1:1980,1] 
 #get only those genes from the expression data
-diff_genes_expr_df <- culled_expression_df[culled_expression_df$Symbol %in% top_genes$Gene,]
+#diff_genes_expr_df <- culled_expression_df[culled_expression_df$Symbol %in% top_genes$Gene,]
 #make the row names the gene symbols
-diff_genes_expr_df <- diff_genes_expr_df %>% remove_rownames %>% column_to_rownames(var="Symbol")
+#diff_genes_expr_df <- diff_genes_expr_df %>% remove_rownames %>% column_to_rownames(var="Symbol")
 
+# log scale
+#epsilon <- 1e-6
+#culled_expression_df <- log2(culled_expression_df + epsilon)
+# order genes by variance
+culled_expression_df$variance <- apply(culled_expression_df, 1, var) 
+exp_ordered <- culled_expression_df[order(culled_expression_df$variance, decreasing = TRUE), ]
+expressions <- select(exp_ordered, -variance)
+exp_top10 <- expressions[1:10, ]
+exp_top100 <- expressions[1:100, ]
+exp_top1000 <- expressions[1:1000, ]
+exp_top5000 <- expressions[1:5000, ]
+exp_top10000 <- expressions[1:10000, ]
+diff_genes_expr_df <- exp_top5000
 
 #Concensus cluster plus algorithm
 d = data.matrix(diff_genes_expr_df)
@@ -76,28 +90,28 @@ icl3 = calcICL(results3,title=results_path,plot="png")
 
 #rerun with dif num of genes
 #10 genes
-top_genes_10 <- diff_expr[1:10,1]
-genes_expr_10_df <- culled_expression_df[culled_expression_df$Symbol %in% top_genes_10$Gene,]
-genes_expr_10_df <- genes_expr_10_df %>% remove_rownames %>% column_to_rownames(var="Symbol")
-d4 = data.matrix(genes_expr_10_df)
+#top_genes_10 <- diff_expr[1:10,1]
+#genes_expr_10_df <- culled_expression_df[culled_expression_df$Symbol %in% top_genes_10$Gene,]
+#genes_expr_10_df <- genes_expr_10_df %>% remove_rownames %>% column_to_rownames(var="Symbol")
+d4 = data.matrix(exp_top10)
 results_path <- file.path(results_dir, "consensusClusterPlusResults/g=10")
 results4 <- ConsensusClusterPlus(d,maxK=10,reps=50,pItem=0.8,pFeature=1,title=results_path,clusterAlg="hc",distance="pearson",plot="png")
 icl4 = calcICL(results4,title=results_path,plot="png")
 
 #100 genes
-top_genes_100 <- diff_expr[1:100,1]
-genes_expr_100_df <- culled_expression_df[culled_expression_df$Symbol %in% top_genes_100$Gene,]
-genes_expr_10_df <- genes_expr_100_df %>% remove_rownames %>% column_to_rownames(var="Symbol")
-d5 = data.matrix(genes_expr_100_df)
+#top_genes_100 <- diff_expr[1:100,1]
+#genes_expr_100_df <- culled_expression_df[culled_expression_df$Symbol %in% top_genes_100$Gene,]
+#genes_expr_10_df <- genes_expr_100_df %>% remove_rownames %>% column_to_rownames(var="Symbol")
+d5 = data.matrix(exp_top100)
 results_path <- file.path(results_dir, "consensusClusterPlusResults/g=100")
 results5 <- ConsensusClusterPlus(d,maxK=10,reps=50,pItem=0.8,pFeature=1,title=results_path,clusterAlg="hc",distance="pearson",plot="png")
 icl5 = calcICL(results5,title=results_path,plot="png")
 
 #1000 genes
-top_genes_1000 <- diff_expr[1:1000,1]
-genes_expr_1000_df <- culled_expression_df[culled_expression_df$Symbol %in% top_genes_1000$Gene,]
-genes_expr_1000_df <- genes_expr_1000_df %>% remove_rownames %>% column_to_rownames(var="Symbol")
-d6 = data.matrix(genes_expr_1000_df)
+#top_genes_1000 <- diff_expr[1:1000,1]
+#genes_expr_1000_df <- culled_expression_df[culled_expression_df$Symbol %in% top_genes_1000$Gene,]
+#genes_expr_1000_df <- genes_expr_1000_df %>% remove_rownames %>% column_to_rownames(var="Symbol")
+d6 = data.matrix(exp_top1000)
 results_path <- file.path(results_dir, "consensusClusterPlusResults/g=1000")
 results6 <- ConsensusClusterPlus(d,maxK=10,reps=50,pItem=0.8,pFeature=1,title=results_path,clusterAlg="hc",distance="pearson",plot="png")
 icl6 = calcICL(results6,title=results_path,plot="png")
@@ -175,7 +189,7 @@ metadata_clustered_2k <- metadata_clustered_2k %>%
       levels = c("1", "2")
     )
   )
-filtered_data_2k_df <- diff_genes_expr_df %>% dplyr::filter(rowSums(.) >=1)
+filtered_data_2k_df <- exp_top5000 %>% dplyr::filter(rowSums(.) >=1)
 filtered_data_2k_df <- round(filtered_data_2k_df)
 dds_2k <- DESeqDataSetFromMatrix(
   countData = filtered_data_2k_df,
@@ -221,7 +235,7 @@ metadata_clustered_3k <- metadata_clustered_3k %>%
       levels = c("1", "2","3")
     )
   )
-filtered_data_3k_df <- diff_genes_expr_df %>% dplyr::filter(rowSums(.) >=1)
+filtered_data_3k_df <- exp_top5000 %>% dplyr::filter(rowSums(.) >=1)
 filtered_data_3k_df <- round(filtered_data_3k_df)
 dds_3k <- DESeqDataSetFromMatrix(
   countData = filtered_data_3k_df,
@@ -404,7 +418,7 @@ column_ha = HeatmapAnnotation(groups = as.factor(combined_metadata$refinebio_dis
 #make the heatmap
 png("results/consensusClusterPlusResults/consensusClusterPlusHeatmap.png")
 ht <- Heatmap(
-  diff_genes_expr_df, 
+  as.matrix(exp_top1000), 
   name="Cluster Heatmap", 
   top_annotation = column_ha,
   column_title = "Samples", column_title_side = "bottom", 
@@ -475,3 +489,4 @@ chi_table_df$p_adj <- p_adj_list
 #save the table to a file
 fileName <- file.path(results_path, "ConsensusClusterPlus_X-Squared_Table.csv")
 write_csv(chi_table_df, fileName)
+
