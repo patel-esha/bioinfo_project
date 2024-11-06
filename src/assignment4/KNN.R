@@ -234,6 +234,7 @@ t10_disease_knn <- knn_calculator_disease(exp_top10,10)
 #print(t10_disease_knn)
 t10_2k_knn <- knn_calculator_2k(exp_top10, 10)
 t10_3k_knn <- knn_calculator_3k(exp_top10, 10)
+#print(t10_disease_knn[[3]])
 
 exp_top100 <- expressions[1:100, ]
 t100_disease_knn <- knn_calculator_disease(exp_top100, 100)
@@ -249,46 +250,46 @@ t1000_3k_knn <- knn_calculator_3k(exp_top1000, 1000)
 
 #pROC
 roc_5000disease <- roc(knn_disease_og[[3]], as.numeric(knn_disease_og[[4]]))
-auc1 <- auc(roc_5000disease)
-auc1
+auc5000d <- auc(roc_5000disease)
+auc5000d
 roc_50002k <- roc(knn_2k_og[[3]], as.numeric(knn_2k_og[[4]]))
-auc <- auc(roc_50002k)
-auc
+auc50002k <- auc(roc_50002k)
+auc50002k
 roc_50003k <- roc(knn_3k_og[[3]], as.numeric(knn_3k_og[[4]]))
-auc <- auc(roc_50003k)
-auc
+auc50003k <- auc(roc_50003k)
+auc50003k
 
 roc_1000disease <- roc(t1000_disease_knn[[3]], as.numeric(t1000_disease_knn[[4]]))
-auc <- auc(roc_1000disease)
-auc
+auc1000d <- auc(roc_1000disease)
+auc1000d
 roc_10002k <- roc(t1000_2k_knn[[3]], as.numeric(t1000_2k_knn[[4]]))
-auc <- auc(roc_10002k)
-auc
+auc10002k <- auc(roc_10002k)
+auc10002k
 roc_10003k <-roc(t1000_3k_knn[[3]], as.numeric(t1000_3k_knn[[4]]))
-auc <- auc(roc_10003k)
-auc
+auc10003k <- auc(roc_10003k)
+auc10003k
 
 roc_100disease <- roc(t100_disease_knn[[3]], as.numeric(t100_disease_knn[[4]]))
-auc <- auc(roc_100disease)
-auc
+auc100d <- auc(roc_100disease)
+auc100d
 roc_1002k <- roc(t100_2k_knn[[3]], as.numeric(t100_2k_knn[[4]]))
-auc <- auc(roc_1002k)
-auc
+auc1002k <- auc(roc_1002k)
+auc1002k
 roc_1003k <- roc(t100_3k_knn[[3]], as.numeric(t100_3k_knn[[4]]))
-auc <- auc(roc_1003k)
-auc
+auc1003k <- auc(roc_1003k)
+auc1003k
 
 
 roc_10disease <- roc(t10_disease_knn[[3]], as.numeric(t10_disease_knn[[4]]))
 print(t10_disease_knn[[4]])
-auc <- auc(roc_10disease)
-auc
+auc10d <- auc(roc_10disease)
+auc10d
 roc_102k <- roc(t10_2k_knn[[3]], as.numeric(t10_2k_knn[[4]]))
-auc <- auc(roc_t102k)
-auc
+auc102k <- auc(roc_t102k)
+auc102k
 roc_103k <- roc(t10_3k_knn[[3]], as.numeric(t10_3k_knn[[4]]))
-auc <- auc(roc_103k)
-auc
+auc103k <- auc(roc_103k)
+auc103k
 
 #heatmaps and dendrograms
 #put together predictions / training based on indices for the knn results 
