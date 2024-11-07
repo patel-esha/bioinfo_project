@@ -368,7 +368,23 @@ plot_naive_bayes_simple <- function(data, labels, save_path) {
   message("Simple Naive Bayes plot saved to: ", save_path)
 }
 
-# Use the function with your data
+# Create the flipped data frame
+# First get the expression data
+exp_df <- exp_top5000
+
+# Create the flipped data frame
+flipped <- data.frame(t(exp_df))
+
+# Add disease as a column and turn them into factors
+flipped$disease <- factor(metadata$refinebio_disease)
+
+# Remove any rows from flipped that don't have corresponding metadata
+flipped <- flipped[rownames(flipped) %in% metadata$refinebio_accession_code,]
+
+# Scale the data
+flipped[,1:5000] <- scale(flipped[,1:5000])
+
+# Now use the plotting function
 plot_naive_bayes_simple(
   data = flipped[,1:5000],
   labels = factor(flipped$disease),
