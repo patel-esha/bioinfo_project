@@ -50,8 +50,10 @@ expressions <- select(exp_ordered, -variance)
 exp_top10 <- expressions[1:10, ]
 exp_top100 <- expressions[1:100, ]
 exp_top1000 <- expressions[1:1000, ]
-exp_top5000 <- expressions[1:5000, ]
+exp_top5000 <- t(expressions[1:5000, ])
 exp_top10000 <- expressions[1:10000, ]
+
+
 
 # optimal number of clusters
 pam_num_clust <- fviz_nbclust(exp_top100, pam, k.max = 6, verbose = TRUE, print.summary = TRUE, method = "silhouette")
@@ -111,8 +113,10 @@ ggplot2::ggsave(file.path(plots_dir, "pam_k2-n1000.png"), plot = k2n1000, width 
 k <- 2
 pam_res_k2_n5000 <- pam(exp_top5000, k = k, diss=FALSE)
 # plot
-k2n5000 <- fviz_cluster(pam_res_k2_n5000,  geom = "point")
+k2n5000 <- fviz_cluster(pam_res_k2_n5000)
 ggplot2::ggsave(file.path(plots_dir, "pam_k2-n5000.png"), plot = k2n5000, width = 8, height = 6, dpi = 300)
+assn3ClusterResult <- pam_res_k2_n5000$clustering
+clusters <- pam_res_k2_n5000$clustering
 
 
 # 10000 k2
