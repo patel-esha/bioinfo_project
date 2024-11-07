@@ -1,0 +1,625 @@
+---
+title: "Patel_A4_Writeup"
+output:
+  word_document: default
+  html_document: default
+  pdf_document: default
+date: "2024-11-06"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Load Expression Data & Metadata
+```{r}
+data_dir <- file.path("data", "SRP164913")
+data_file <- file.path(data_dir, "SRP164913_HUGO.tsv")
+metadata_file <- file.path(data_dir, "metadata_SRP164913.tsv")
+results_dir <- file.path("results")
+plots_dir <- file.path("plots")
+
+library(tidyverse)
+library(randomForest)
+library(caret)
+library(ComplexHeatmap)
+library(dendextend)
+library(corrplot)
+library(pROC)
+
+expression_data <- read.delim(data_file)
+metadata <- read.delim(metadata_file)
+metadata$condition <- ifelse(metadata$refinebio_disease == "hc", "normal", "tumor")
+metadata$condition <- as.factor(metadata$condition)
+```
+
+Condition Distribution
+```{r}
+print("Condition distribution:")
+print(table(metadata$condition))
+```
+Function to select the most variable genes
+```{r}
+select_variable_genes <- function(expr_data, n_genes) {
+  # Calculate variance for each gene
+  gene_vars <- apply(expr_data[,-1], 1, var)
+  
+  # Select top genes
+  ordered_genes <- order(gene_vars, decreasing = TRUE)
+  selected_indices <- ordered_genes[1:n_genes]
+  
+  # Return selected genes
+  return(expr_data[selected_indices,])
+}
+```
+
+Function to prepare data for modeling
+```{r}
+prepare_data <- function(expr_data, metadata, response_col) {
+  # Transpose expression data
+  expr_t <- t(expr_data[,-1])
+  data_for_model <- as.data.frame(expr_t)
+  
+  # Add response variable
+  data_for_model$response <- metadata[[response_col]]
+  
+  return(data_for_model)
+}
+```
+
+Function to train random forest model
+```{r}
+train_rf_model <- function(data) {
+  set.seed(42)  # for reproducibility
+  
+  # Create training control
+  ctrl <- trainControl(
+    method = "cv",
+    number = 5,
+    classProbs = TRUE,
+    summaryFunction = twoClassSummary
+  )
+  
+  # Train model
+  rf_model <- train(
+    response ~ .,
+    data = data,
+    method = "rf",
+    metric = "ROC",
+    trControl = ctrl,
+    ntree = 100
+  )
+  
+  return(rf_model)
+}
+
+```
+
+
+2. Supervised Analysis
+```{r}
+# Select 5000 most variable genes
+variable_genes_5000 <- select_variable_genes(expression_data, 5000)
+print("Dimensions of selected variable genes:")
+print(dim(variable_genes_5000))
+
+# Prepare data for tumor vs normal prediction
+tumor_data <- prepare_data(variable_genes_5000, metadata, "condition")
+tumor_data$response <- as.factor(tumor_data$response)
+
+print("Dimensions of prepared tumor data:")
+print(dim(tumor_data))
+print("Response variable distribution:")
+print(table(tumor_data$response))
+
+# Train model for tumor vs normal (Assignment 1)
+print("Training random forest model...")
+rf_model_tumor <- train_rf_model(tumor_data)
+
+# Get predictions
+predictions <- predict(rf_model_tumor, tumor_data, type = "prob")
+predicted_class <- predict(rf_model_tumor, tumor_data)
+```
+2. Retraining clusters (Assignment 3)
+```{r}
+# Load necessary library for multiClassSummary
+if (!require("caret")) install.packages("caret")
+library(caret)
+
+# Function to train model on cluster labels
+train_cluster_model <- function(expr_data, metadata, n_genes, cluster_col) {
+  # Select the most variable genes
+  variable_genes <- select_variable_genes(expr_data, n_genes)
+  
+  # Prepare the data with cluster as the response variable
+  cluster_data <- prepare_data(variable_genes, metadata, cluster_col)
+  cluster_data$response <- as.factor(cluster_data$response)
+  
+  # Create training control with multiClassSummary for multi-class support
+  ctrl <- trainControl(
+    method = "cv",
+    number = 5,
+    classProbs = TRUE,
+    summaryFunction = multiClassSummary
+  )
+  
+  # Train the model (Random Forest example here)
+  cluster_model <- train(
+    response ~ .,
+    data = cluster_data,
+    method = "rf",
+    metric = "Accuracy",
+    trControl = ctrl,
+    ntree = 100
+  )
+  
+  return(cluster_model)
+}
+
+# Check if 'cluster_assignment' exists in metadata
+if (!"cluster_assignment" %in% colnames(metadata)) {
+  # If it doesn't exist, create it with placeholder values or populate it from an external source
+  metadata$cluster_assignment <- sample(1:4, nrow(metadata), replace = TRUE)  # Example: random clusters
+  print("Warning: 'cluster_assignment' column not found. Created a placeholder column with random clusters.")
+} else {
+  print("Cluster assignments found in metadata.")
+}
+
+# Ensure that cluster labels are valid R variable names
+metadata$cluster_assignment <- as.factor(metadata$cluster_assignment)
+levels(metadata$cluster_assignment) <- make.names(levels(metadata$cluster_assignment))
+
+# Print updated cluster levels to verify
+print("Updated cluster levels:")
+print(levels(metadata$cluster_assignment))
+
+# Train the model to predict clusters
+cluster_model <- train_cluster_model(expression_data, metadata, 5000, "cluster_assignment")
+
+# Prepare tumor_data for prediction
+tumor_data$cluster_assignment <- metadata$cluster_assignment  # Add cluster labels to tumor_data if missing
+
+# Get predictions for the cluster model
+cluster_predictions <- predict(cluster_model, tumor_data, type = "prob")
+predicted_clusters <- predict(cluster_model, tumor_data)
+
+# Add cluster prediction results to a data frame
+cluster_results_df <- data.frame(
+  Sample_ID = rownames(tumor_data),
+  True_Cluster = tumor_data$cluster_assignment,
+  Predicted_Cluster = predicted_clusters
+)
+
+# Save the cluster prediction results
+write.csv(cluster_results_df, file = file.path(results_dir, "cluster_predictions.csv"), row.names = FALSE)
+
+print("Cluster model trained and predictions saved.")
+
+```
+
+
+
+
+
+
+3. Calculate sample-specific predictions
+```{r}
+results_df <- data.frame(
+  Sample_ID = rownames(tumor_data),
+  True_Class = tumor_data$response,
+  Predicted_Class = predicted_class,
+  Normal_Probability = predictions[,"normal"],
+  Tumor_Probability = predictions[,"tumor"]
+)
+
+# Calculate performance metrics
+confusion_matrix <- confusionMatrix(predicted_class, tumor_data$response)
+roc_obj <- roc(tumor_data$response, predictions[,"tumor"])
+
+# Function to train multiple models and get their predictions
+train_multiple_models <- function(expr_data, metadata, n_genes = 5000) {
+  # Select variable genes
+  variable_genes <- select_variable_genes(expr_data, n_genes)
+  model_data <- prepare_data(variable_genes, metadata, "condition")
+  model_data$response <- as.factor(model_data$response)
+  
+  # Set up training control
+  ctrl <- trainControl(
+    method = "cv",
+    number = 5,
+    classProbs = TRUE,
+    summaryFunction = twoClassSummary
+  )
+  
+  # Train different models
+  set.seed(42)
+  
+  # Random Forest
+  rf_model <- train(
+    response ~ .,
+    data = model_data,
+    method = "rf",
+    metric = "ROC",
+    trControl = ctrl
+  )
+  
+  # Logistic Regression
+  glm_model <- train(
+    response ~ .,
+    data = model_data,
+    method = "glm",
+    family = "binomial",
+    metric = "ROC",
+    trControl = ctrl
+  )
+  
+  # Support Vector Machine
+  svm_model <- train(
+    response ~ .,
+    data = model_data,
+    method = "svmRadial",
+    metric = "ROC",
+    trControl = ctrl
+  )
+  
+  # K-Nearest Neighbors
+  knn_model <- train(
+    response ~ .,
+    data = model_data,
+    method = "knn",
+    metric = "ROC",
+    trControl = ctrl
+  )
+  
+  # Get predictions from each model
+  rf_pred <- predict(rf_model, model_data)
+  glm_pred <- predict(glm_model, model_data)
+  svm_pred <- predict(svm_model, model_data)
+  knn_pred <- predict(knn_model, model_data)
+  
+  # Create prediction matrix
+  prediction_matrix <- data.frame(
+    Sample_ID = rownames(model_data),
+    True_Class = model_data$response,
+    RF_Prediction = rf_pred,
+    GLM_Prediction = glm_pred,
+    SVM_Prediction = svm_pred,
+    KNN_Prediction = knn_pred
+  )
+  
+  # Calculate agreement statistics
+  prediction_matrix$Models_Agree <- apply(prediction_matrix[,c("RF_Prediction", "GLM_Prediction", 
+                                                             "SVM_Prediction", "KNN_Prediction")], 
+                                        1, function(x) length(unique(x)) == 1)
+  
+  prediction_matrix$Num_Predicting_Normal <- apply(prediction_matrix[,c("RF_Prediction", "GLM_Prediction", 
+                                                                      "SVM_Prediction", "KNN_Prediction")], 
+                                                 1, function(x) sum(x == "normal"))
+  
+  prediction_matrix$Num_Predicting_Tumor <- apply(prediction_matrix[,c("RF_Prediction", "GLM_Prediction", 
+                                                                     "SVM_Prediction", "KNN_Prediction")], 
+                                                1, function(x) sum(x == "tumor"))
+  
+  # Calculate model performance
+  models <- list(RF = rf_model, GLM = glm_model, SVM = svm_model, KNN = knn_model)
+  model_performance <- lapply(models, function(m) {
+    preds <- predict(m, model_data, type = "prob")
+    roc_obj <- roc(model_data$response, preds[,"tumor"])
+    return(auc(roc_obj))
+  })
+  
+  return(list(
+    prediction_matrix = prediction_matrix,
+    model_performance = model_performance,
+    models = models
+  ))
+}
+
+# Run the analysis
+results <- train_multiple_models(expression_data, metadata)
+
+# Display results
+print("Prediction Matrix Sample:")
+head(results$prediction_matrix)
+
+print("\nModel Performance (AUC):")
+print(unlist(results$model_performance))
+
+# Calculate agreement statistics
+agreement_stats <- data.frame(
+  All_Models_Agree = mean(results$prediction_matrix$Models_Agree) * 100,
+  Avg_Normal_Predictions = mean(results$prediction_matrix$Num_Predicting_Normal),
+  Avg_Tumor_Predictions = mean(results$prediction_matrix$Num_Predicting_Tumor)
+)
+
+print("\nAgreement Statistics:")
+print(agreement_stats)
+
+# Save results
+write.csv(results$prediction_matrix, 
+          file = file.path(results_dir, "multi_model_predictions.csv"), 
+          row.names = FALSE)
+```
+
+```{r}
+# First let's check the metadata structure
+print("Metadata structure:")
+str(metadata)
+print("\nNumber of rows in metadata:")
+nrow(metadata)
+
+# Check the tumor_data structure
+print("\nTumor data dimensions:")
+dim(tumor_data)
+print("\nSample names in tumor_data:")
+head(rownames(tumor_data))
+
+# Create results dataframe using tumor_data samples
+results_df <- data.frame(
+  Sample_ID = rownames(tumor_data),
+  True_Condition = tumor_data$response,
+  stringsAsFactors = FALSE
+)
+
+# Get predictions for all samples
+predictions <- predict(rf_model_tumor, tumor_data, type = "prob")
+predicted_class <- predict(rf_model_tumor, tumor_data)
+
+# Add predictions to results
+results_df$Predicted_Class <- predicted_class
+results_df$Normal_Probability <- round(predictions[,"normal"], 3)
+results_df$Tumor_Probability <- round(predictions[,"tumor"], 3)
+
+# Convert 'normal' and 'tumor' back to 'hc' and 'ms'
+results_df$True_Condition <- as.character(results_df$True_Condition)
+results_df$True_Condition[results_df$True_Condition == "normal"] <- "hc"
+results_df$True_Condition[results_df$True_Condition == "tumor"] <- "ms"
+
+results_df$Predicted_Class <- as.character(results_df$Predicted_Class)
+results_df$Predicted_Class[results_df$Predicted_Class == "normal"] <- "hc"
+results_df$Predicted_Class[results_df$Predicted_Class == "tumor"] <- "ms"
+
+# Verify we have all samples
+print("\nNumber of rows in results:")
+nrow(results_df)
+
+# Print unique values in each column to verify
+print("\nUnique values in True_Condition:")
+table(results_df$True_Condition)
+print("\nUnique values in Predicted_Class:")
+table(results_df$Predicted_Class)
+
+# Save to CSV file
+write.csv(results_df, 
+          file = file.path(results_dir, "random_forest_predictions.csv"), 
+          row.names = FALSE,
+          quote = FALSE)
+
+# Show all rows
+print("\nAll predictions:")
+print(results_df, row.names = FALSE)
+
+# Install required package if not already installed
+if (!require("kableExtra")) install.packages("kableExtra")
+library(kableExtra)
+
+# Format the results table
+formatted_table <- results_df %>%
+  kbl(format = "pipe", 
+      col.names = c("Sample ID", "True Condition", "Predicted Class", 
+                   "HC Probability", "MS Probability"),
+      align = c("l", "c", "c", "r", "r"),
+      digits = 3) %>%
+  kable_styling(full_width = FALSE) %>%
+  row_spec(0, bold = TRUE) %>%
+  row_spec(which(results_df$True_Condition != results_df$Predicted_Class), 
+          background = "#FFE4E1")  # Light red background for misclassifications
+
+# Print the formatted table
+cat("\nRandom Forest Classification Results:\n")
+print(formatted_table)
+
+# Add a summary below the table
+cat("\nSummary Statistics:\n")
+cat("Total Samples:", nrow(results_df), "\n")
+cat("Correct Predictions:", sum(results_df$True_Condition == results_df$Predicted_Class), "\n")
+cat("Accuracy:", round(mean(results_df$True_Condition == results_df$Predicted_Class) * 100, 1), "%\n")
+
+```
+
+4. Evaluate different numbers of genes
+```{r}
+gene_numbers <- c(10, 100, 1000, 10000)
+gene_results <- list()
+
+for(n_genes in gene_numbers) {
+  # Select genes
+  variable_genes <- select_variable_genes(expression_data, n_genes)
+  # Prepare data
+  model_data <- prepare_data(variable_genes, metadata, "condition")
+  model_data$response <- as.factor(model_data$response)
+  
+  # Train model
+  model <- train_rf_model(model_data)
+  
+  # Get predictions and AUC
+  preds <- predict(model, model_data, type = "prob")
+  roc_temp <- roc(model_data$response, preds[,"tumor"])
+  
+  gene_results[[as.character(n_genes)]] <- list(
+    auc = auc(roc_temp),
+    model = model
+  )
+}
+
+```
+Visualizations
+```{r}
+# 1. Ensure proper data separation
+set.seed(42)  # for reproducibility
+train_index <- createDataPartition(tumor_data$response, p = 0.7, list = FALSE)
+train_data <- tumor_data[train_index,]
+test_data <- tumor_data[-train_index,]
+
+# 2. Train model only on training data
+rf_model_tumor <- train(
+    response ~ .,
+    data = train_data,  # Use only training data
+    method = "rf",
+    metric = "ROC",
+    trControl = trainControl(
+        method = "cv",
+        number = 5,
+        classProbs = TRUE,
+        summaryFunction = twoClassSummary
+    )
+)
+
+# 3. Evaluate on test data
+test_predictions <- predict(rf_model_tumor, test_data, type = "prob")
+test_classes <- predict(rf_model_tumor, test_data)
+test_roc <- roc(test_data$response, test_predictions[,"tumor"])
+
+# 4. For gene number comparison, use cross-validation
+gene_results <- list()
+for(n_genes in gene_numbers) {
+    # Select genes
+    variable_genes <- select_variable_genes(expression_data, n_genes)
+    # Prepare data
+    model_data <- prepare_data(variable_genes, metadata, "condition")
+    model_data$response <- as.factor(model_data$response)
+    
+    # Split data
+    train_idx <- createDataPartition(model_data$response, p = 0.7, list = FALSE)
+    train <- model_data[train_idx,]
+    test <- model_data[-train_idx,]
+    
+    # Train and evaluate
+    model <- train_rf_model(train)
+    preds <- predict(model, test, type = "prob")
+    roc_temp <- roc(test$response, preds[,"tumor"])
+    
+    gene_results[[as.character(n_genes)]] <- list(
+        auc = auc(roc_temp),
+        model = model
+    )
+}
+
+library(ggplot2)
+
+# 1. Plot AUC vs Number of Genes
+auc_data <- data.frame(
+  n_genes = gene_numbers,
+  auc = sapply(gene_results, function(x) x$auc)
+)
+
+ggplot(auc_data, aes(x = n_genes, y = auc)) +
+  geom_line() +
+  geom_point(size = 3) +
+  scale_x_log10(labels = scales::comma) +
+  labs(
+    title = "Model Performance vs Number of Genes",
+    x = "Number of Genes (log scale)",
+    y = "AUC"
+  ) +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5))
+
+# 2. Confusion Matrix Visualization
+library(caret)              # Load the package
+library(pROC)             # Load the package
+conf_matrix <- confusionMatrix(predicted_class, tumor_data$response)
+conf_data <- as.data.frame(conf_matrix$table)
+colnames(conf_data) <- c("Reference", "Prediction", "Freq")
+
+ggplot(conf_data, aes(x = Reference, y = Prediction, fill = Freq)) +
+  geom_tile() +
+  geom_text(aes(label = Freq), color = "white", size = 8) +
+  scale_fill_gradient(low = "steelblue", high = "darkblue") +
+  labs(
+    title = "Confusion Matrix Heatmap",
+    x = "True Class",
+    y = "Predicted Class"
+  ) +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5))
+
+
+# Save plots
+ggsave(file.path(plots_dir, "model_performance_vs_genes.pdf"))
+ggsave(file.path(plots_dir, "confusion_matrix_heatmap.pdf"))
+dev.off()
+```
+
+
+
+
+
+
+
+5. Heatmap
+```{r}
+library(ComplexHeatmap)
+library(circlize)
+library(grid)
+
+# Function to generate synthetic data if needed
+generate_synthetic_data <- function(matrix, n_rows, n_cols) {
+  if (all(matrix == 0)) {
+    cat("Using synthetic data for heatmap generation.\n")
+    synthetic_matrix <- matrix(runif(n_rows * n_cols, -2, 2), nrow = n_rows, ncol = n_cols)
+    rownames(synthetic_matrix) <- paste0("Gene", 1:n_rows)
+    colnames(synthetic_matrix) <- paste0("Sample", 1:n_cols)
+    return(synthetic_matrix)
+  }
+  return(matrix)
+}
+
+# Create a synthetic dataset if all values in `heatmap_data` are zero
+n_genes <- 50
+n_samples <- ncol(variable_genes_5000) - 1
+heatmap_data <- t(scale(t(as.matrix(variable_genes_5000[1:n_genes, -1]))))
+
+# Ensure we have meaningful data for the heatmap
+heatmap_data <- generate_synthetic_data(heatmap_data, n_genes, n_samples)
+
+# Create annotation data for columns
+metadata$condition <- as.factor(metadata$condition)
+col_annotation <- HeatmapAnnotation(
+  condition = metadata$condition,
+  col = list(condition = c("normal" = "#009E73", "tumor" = "#D55E00"))
+)
+
+# Define color scale
+min_val <- min(heatmap_data, na.rm = TRUE)
+max_val <- max(heatmap_data, na.rm = TRUE)
+col_fun <- colorRamp2(
+  breaks = c(min_val, 0, max_val),
+  colors = c("blue", "white", "red")
+)
+
+# Generate the heatmap
+pdf(file.path(plots_dir, "predictive_genes_heatmap.pdf"), width = 12, height = 10)
+Heatmap(
+  heatmap_data,
+  name = "Z-score",
+  col = col_fun,
+  show_row_names = TRUE,
+  show_column_names = FALSE,
+  column_title = "Samples",
+  row_title = "Genes",
+  top_annotation = col_annotation,
+  cluster_rows = TRUE,
+  cluster_columns = TRUE,
+  show_row_dend = TRUE,
+  show_column_dend = TRUE,
+  row_names_gp = gpar(fontsize = 8),
+  column_names_gp = gpar(fontsize = 8),
+  heatmap_legend_param = list(
+    title_gp = gpar(fontsize = 10, fontface = "bold"),
+    labels_gp = gpar(fontsize = 8)
+  )
+)
+dev.off()
+```
+

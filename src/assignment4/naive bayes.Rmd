@@ -1,0 +1,452 @@
+---
+title: "Naive Bayes Classification Analysis"
+author: "Justin Reyes"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Setup
+
+```{r paths_and_libraries}
+#file paths
+data_dir <- file.path("..", "..", "data", "SRP164913")
+data_file <- file.path(data_dir, "SRP164913_HUGO.tsv")
+metadata_file <- file.path(data_dir, "metadata_SRP164913.tsv")
+results_dir <- file.path("..", "..", "results")
+plots_dir <- file.path("..", "..", "plots")
+diff_expr_rslts_file <- file.path(results_dir, "SRP164913_diff_expr_results.tsv")
+
+#libraries
+library(caTools) 
+library(class) 
+library(e1071)
+library(magrittr)
+library(dplyr)
+library(mlr3)
+library(mlr3learners)
+library(ComplexHeatmap)
+```
+
+## Data Loading and Preprocessing
+
+```{r load_data}
+#load in the expression data and metadata
+metadata <- readr::read_tsv(metadata_file)
+# Read in the gene expression table
+expression_df <- readr::read_tsv(data_file) %>%
+  tibble::column_to_rownames("Symbol")
+
+#get rid of ham/tsp group to make it a two group problem
+culledMeta <- metadata[!(metadata$refinebio_disease=="ham/tsp"),]
+discardColumns <- metadata[(metadata$refinebio_disease=="ham/tsp"),]
+discardColumns = as.vector(discardColumns$refinebio_accession_code)
+metadata <- culledMeta
+
+#Preserve only columns in expression_df that match one of the accession ids
+culled_expression_df = expression_df[,!(names(expression_df) %in% discardColumns)]
+#check samples match (got rid of ham/tsp people)
+print("Checking dimensions:")
+print(paste("Number of metadata samples:", nrow(metadata)))
+print(paste("Number of expression samples:", ncol(culled_expression_df)))
+
+# Make sure the samples match between metadata and expression data
+common_samples <- intersect(metadata$refinebio_accession_code, colnames(culled_expression_df))
+metadata <- metadata[metadata$refinebio_accession_code %in% common_samples,]
+culled_expression_df <- culled_expression_df[,common_samples]
+
+print("After matching samples:")
+print(paste("Number of metadata samples:", nrow(metadata)))
+print(paste("Number of expression samples:", ncol(culled_expression_df)))
+
+# Final check
+all.equal(colnames(culled_expression_df), metadata$refinebio_accession_code)
+```
+
+## Gene Selection and Ordering
+
+```{r gene_selection}
+# order genes by variance
+culled_expression_df$variance <- apply(culled_expression_df, 1, var) 
+exp_ordered <- culled_expression_df[order(culled_expression_df$variance, decreasing = TRUE), ]
+expressions <- select(exp_ordered, -variance)
+#get top 5000
+exp_top5000 <- expressions[1:5000, ]
+```
+
+## Define Naive Bayes Functions
+
+```{r nb_functions}
+naive_bayes_calculator_disease <- function(exp_df, ngenes){
+  #flip the data
+  flipped <- data.frame(t(exp_df[]))
+  #add disease as a column and turn them into numbers for the naive bayes algo
+  flipped$disease <- factor(metadata$refinebio_disease)  # first make sure it's a factor
+  
+  # Remove any rows from flipped that don't have corresponding metadata
+  flipped <- flipped[rownames(flipped) %in% metadata$refinebio_accession_code,]
+  
+  #scale data
+  flipped[,1:ngenes] <- scale(flipped[,1:ngenes])
+  #separate data
+  size <- floor(0.6 * nrow(flipped))
+  train_ind <- sample(seq_len(nrow(flipped)), size=size)
+  train_labels <- flipped[train_ind, ngenes+1]
+  test_labels <- flipped[-train_ind, ngenes+1]
+  data_train <- flipped[train_ind, 1:ngenes]
+  data_test <- flipped[-train_ind, 1:ngenes]
+  
+  #train Naive Bayes model
+  nb_model <- naiveBayes(x = data_train, y = as.factor(train_labels))
+  
+  #make predictions
+  predictions <- predict(nb_model, data_test)
+  
+  #store full predictions
+  predictionFull <- flipped
+  predictionFull$results <- flipped$disease
+  k=1
+  for(i in nrow(predictionFull)){
+    if(i %in% train_ind){
+      
+    }
+    else{
+      predictionFull[i, ngenes+2] <- predictions[k]
+      k <- k+1
+    }
+  }
+  
+  cm <- table(test_labels, predictions)
+  print(cm)
+  return(list(predictions, cm, predictionFull$results))
+}
+
+# Since we don't have the cluster assignments, let's create some mock clusters
+# using k-means for demonstration
+set.seed(123)  # for reproducibility
+exp_matrix <- t(as.matrix(exp_top5000))
+k2_clusters <- kmeans(exp_matrix, centers=2)$cluster
+k3_clusters <- kmeans(exp_matrix, centers=3)$cluster
+
+naive_bayes_calculator_2k <- function(exp_df, ngenes){
+  #flip the data
+  flipped <- data.frame(t(exp_df[]))
+  #add cluster as a column
+  flipped$cluster2k <- k2_clusters
+  
+  #scale data
+  flipped[,1:ngenes] <- scale(flipped[,1:ngenes])
+  #separate data
+  size <- floor(0.6 * nrow(flipped))
+  train_ind <- sample(seq_len(nrow(flipped)), size=size)
+  train_labels <- flipped[train_ind, ngenes+1]
+  test_labels <- flipped[-train_ind, ngenes+1]
+  data_train <- flipped[train_ind, 1:ngenes]
+  data_test <- flipped[-train_ind, 1:ngenes]
+  
+  #train Naive Bayes model
+  nb_model <- naiveBayes(x = data_train, y = as.factor(train_labels))
+  
+  #make predictions
+  predictions <- predict(nb_model, data_test)
+  
+  #store full predictions
+  predictionFull <- flipped
+  predictionFull$results <- flipped$cluster2k
+  k=1
+  for(i in nrow(predictionFull)){
+    if(i %in% train_ind){
+      
+    }
+    else{
+      predictionFull[i, ngenes+2] <- predictions[k]
+      k <- k+1
+    }
+  }
+  
+  cm <- table(test_labels, predictions)
+  print(cm)
+  return(list(predictions, cm, predictionFull$results))
+}
+
+naive_bayes_calculator_3k <- function(exp_df, ngenes){
+  #flip the data
+  flipped <- data.frame(t(exp_df[]))
+  #add cluster as a column
+  flipped$cluster3k <- k3_clusters
+  
+  #scale data
+  flipped[,1:ngenes] <- scale(flipped[,1:ngenes])
+  #separate data
+  size <- floor(0.6 * nrow(flipped))
+  train_ind <- sample(seq_len(nrow(flipped)), size=size)
+  train_labels <- flipped[train_ind, ngenes+1]
+  test_labels <- flipped[-train_ind, ngenes+1]
+  data_train <- flipped[train_ind, 1:ngenes]
+  data_test <- flipped[-train_ind, 1:ngenes]
+  
+  #train Naive Bayes model
+  nb_model <- naiveBayes(x = data_train, y = as.factor(train_labels))
+  
+  #make predictions
+  predictions <- predict(nb_model, data_test)
+  
+  #store full predictions
+  predictionFull <- flipped
+  predictionFull$results <- flipped$cluster3k
+  k=1
+  for(i in nrow(predictionFull)){
+    if(i %in% train_ind){
+      
+    }
+    else{
+      predictionFull[i, ngenes+2] <- predictions[k]
+      k <- k+1
+    }
+  }
+  
+  cm <- table(test_labels, predictions)
+  print(cm)
+  return(list(predictions, cm, predictionFull$results))
+}
+```
+
+## Run Analysis with Different Gene Sets
+
+```{r run_analysis}
+# Run with 5000 genes
+nb_disease_og <- naive_bayes_calculator_disease(exp_top5000, 5000)
+nb_2k_og <- naive_bayes_calculator_2k(exp_top5000, 5000)
+nb_3k_og <- naive_bayes_calculator_3k(exp_top5000, 5000)
+
+# Run with 10 genes
+exp_top10 <- expressions[1:10, ]
+t10_disease_nb <- naive_bayes_calculator_disease(exp_top10, 10)
+t10_2k_nb <- naive_bayes_calculator_2k(exp_top10, 10)
+t10_3k_nb <- naive_bayes_calculator_3k(exp_top10, 10)
+
+# Run with 100 genes
+exp_top100 <- expressions[1:100, ]
+t100_disease_nb <- naive_bayes_calculator_disease(exp_top100, 100)
+t100_2k_nb <- naive_bayes_calculator_2k(exp_top100, 100)
+t100_3k_nb <- naive_bayes_calculator_3k(exp_top100, 100)
+
+# Run with 1000 genes
+exp_top1000 <- expressions[1:1000, ]
+t1000_disease_nb <- naive_bayes_calculator_disease(exp_top1000, 1000)
+t1000_2k_nb <- naive_bayes_calculator_2k(exp_top1000, 1000)
+t1000_3k_nb <- naive_bayes_calculator_3k(exp_top1000, 1000)
+```
+
+## Helper Functions for ROC Analysis
+
+```{r roc_helpers}
+truePos <- function(cm){
+  val <- (cm[[1]][1] / (cm[[1]][1] + cm[[1]][2]))
+  if(is.nan(val)){
+    return(0)
+  }
+  return(val)
+}
+
+falsePos <- function(cm){
+  val <- (cm[[1]][3] / (cm[[1]][3] + cm[[1]][4]))
+  if(is.nan(val)){
+    return(0)
+  }
+  return(val)
+}
+```
+
+## Calculate ROC Coordinates
+
+```{r roc_calculations}
+# Disease classification coordinates
+t10_disease_coords = c(truePos(t10_disease_nb[2]), falsePos(t10_disease_nb[2]))
+t100_disease_coords = c(truePos(t100_disease_nb[2]), falsePos(t100_disease_nb[2]))
+t1000_disease_coords = c(truePos(t1000_disease_nb[2]), falsePos(t1000_disease_nb[2]))
+t5000_disease_coords = c(truePos(nb_disease_og[2]), falsePos(nb_disease_og[2]))
+
+# 2k clustering coordinates
+t10_2k_coords = c(truePos(t10_2k_nb[2]), falsePos(t10_2k_nb[2]))
+t100_2k_coords = c(truePos(t100_2k_nb[2]), falsePos(t100_2k_nb[2]))
+t1000_2k_coords = c(truePos(t1000_2k_nb[2]), falsePos(t1000_2k_nb[2]))
+t5000_2k_coords = c(truePos(nb_2k_og[2]), falsePos(nb_2k_og[2]))
+
+# 3k clustering coordinates
+t10_3k_coords = c(truePos(t10_3k_nb[2]), falsePos(t10_3k_nb[2]))
+t100_3k_coords = c(truePos(t100_3k_nb[2]), falsePos(t100_3k_nb[2]))
+t1000_3k_coords = c(truePos(t1000_3k_nb[2]), falsePos(t1000_3k_nb[2]))
+t5000_3k_coords = c(truePos(nb_3k_og[2]), falsePos(nb_3k_og[2]))
+```
+
+## Plot ROC Curves
+
+```{r plot_roc, fig.width=10, fig.height=4}
+par(mfrow=c(1,3))
+
+# Disease Classification ROC
+roc_disease_x = c(t10_disease_coords[2], t100_disease_coords[2], t1000_disease_coords[2], t5000_disease_coords[2])
+roc_disease_y = c(t10_disease_coords[1], t100_disease_coords[1], t1000_disease_coords[1], t5000_disease_coords[1])
+plot(roc_disease_x, roc_disease_y, main="ROC Curve - Disease Classification", 
+     xlab="False Positive Rate", ylab="True Positive Rate")
+
+# 2k Clustering ROC
+roc_2k_x = c(t10_2k_coords[2], t100_2k_coords[2], t1000_2k_coords[2], t5000_2k_coords[2])
+roc_2k_y = c(t10_2k_coords[1], t100_2k_coords[1], t1000_2k_coords[1], t5000_2k_coords[1])
+plot(roc_2k_x, roc_2k_y, main="ROC Curve - 2k Clustering",
+     xlab="False Positive Rate", ylab="True Positive Rate")
+
+# 3k Clustering ROC
+roc_3k_x = c(t10_3k_coords[2], t100_3k_coords[2], t1000_3k_coords[2], t5000_3k_coords[2])
+roc_3k_y = c(t10_3k_coords[1], t100_3k_coords[1], t1000_3k_coords[1], t5000_3k_coords[1])
+plot(roc_3k_x, roc_3k_y, main="ROC Curve - 3k Clustering",
+     xlab="False Positive Rate", ylab="True Positive Rate")
+```
+
+# Make Naive Bayes Plots
+
+```{r plot_naive_bayes_simple}
+# Ensure plots directory exists
+dir.create(plots_dir, recursive = TRUE, showWarnings = FALSE)
+
+plot_naive_bayes_simple <- function(data, labels, save_path) {
+  # Get top 2 most variable features
+  vars <- apply(data, 2, var)
+  top_2_features <- names(sort(vars, decreasing = TRUE))[1:2]
+  
+  # Extract and scale the features
+  X <- scale(data[, top_2_features])
+  
+  # Train Naive Bayes model
+  nb_model <- naiveBayes(X, labels)
+  
+  # Create plot
+  png(save_path, width = 800, height = 800, res = 100)
+  
+  # Set up the plot
+  par(mar = c(5,5,4,2))
+  
+  # Create basic scatter plot
+  plot(X[,1], X[,2],
+       col = factor(labels),
+       pch = 16,
+       cex = 1.5,
+       xlab = top_2_features[1],
+       ylab = top_2_features[2],
+       main = "Naive Bayes Classification",
+       xlim = range(X[,1]) + c(-0.5, 0.5),
+       ylim = range(X[,2]) + c(-0.5, 0.5))
+  
+  # Add decision boundaries
+  x_range <- range(X[,1])
+  x_grid <- seq(x_range[1]-0.5, x_range[2]+0.5, length.out = 100)
+  y_grid <- seq(range(X[,2])[1]-0.5, range(X[,2])[2]+0.5, length.out = 100)
+  grid <- expand.grid(x = x_grid, y = y_grid)
+  grid_pred <- predict(nb_model, grid)
+  
+  # Plot decision boundary
+  contour(x_grid, y_grid, 
+          matrix(as.numeric(grid_pred), nrow = length(x_grid)),
+          levels = 1.5,
+          add = TRUE,
+          lty = 2,
+          col = "gray50")
+  
+  # Add legend
+  legend("topright", 
+         legend = levels(factor(labels)),
+         col = 1:length(unique(labels)),
+         pch = 16,
+         title = "Classes",
+         bg = "white")
+  
+  dev.off()
+  message("Simple Naive Bayes plot saved to: ", save_path)
+}
+
+# Create the flipped data frame
+# First get the expression data
+exp_df <- exp_top5000
+
+# Create the flipped data frame
+flipped <- data.frame(t(exp_df))
+
+# Add disease as a column and turn them into factors
+flipped$disease <- factor(metadata$refinebio_disease)
+
+# Remove any rows from flipped that don't have corresponding metadata
+flipped <- flipped[rownames(flipped) %in% metadata$refinebio_accession_code,]
+
+# Scale the data
+flipped[,1:5000] <- scale(flipped[,1:5000])
+
+# Now use the plotting function
+plot_naive_bayes_simple(
+  data = flipped[,1:5000],
+  labels = factor(flipped$disease),
+  save_path = file.path(plots_dir, "naive_bayes_simple.png")
+)
+```
+
+## Generate Heatmap
+
+```{r heatmap}
+# Create annotation
+column_ha = HeatmapAnnotation(
+  groups = as.factor(metadata$refinebio_disease),
+  predictedgroups = as.factor(t(nb_disease_og[3])[[1]]),
+  predicted2k = as.factor(t(nb_2k_og[3])[[1]]),
+  predicted3k = as.factor(t(nb_3k_og[3])[[1]])
+)
+
+# Get matrix data and scale it
+mat <- as.matrix(exp_top1000)
+mat_scaled <- t(scale(t(mat)))
+
+# Draw the heatmap in the R Markdown output
+suppressMessages(
+  ht <- Heatmap(
+    mat_scaled,
+    name="Naive Bayes Heatmap, 1000 Genes",
+    col = colorRampPalette(c("blue", "white", "red"))(100),
+    top_annotation = column_ha,
+    column_title = "Samples",
+    column_title_side = "bottom",
+    row_title = "Genes",
+    row_title_side = "right",
+    show_column_names = FALSE,
+    show_row_names = FALSE
+  )
+)
+
+# Display heatmap in R Markdown
+suppressMessages(print(draw(ht)))
+
+# Save heatmap to file
+png(file.path(results_dir, "nb_heatmap.png"), width=800, height=600)
+suppressMessages(print(draw(ht)))
+dev.off()
+
+# Get predictions in order of samples
+flipped <- data.frame(t(exp_top5000))
+flipped$disease <- factor(metadata$refinebio_disease)
+flipped <- flipped[rownames(flipped) %in% metadata$refinebio_accession_code,]
+flipped[,1:5000] <- scale(flipped[,1:5000])
+
+# Train model on all data
+nb_model <- naiveBayes(x = flipped[,1:5000], y = as.factor(flipped$disease))
+all_predictions <- predict(nb_model, flipped[,1:5000])
+
+# Create a data frame with sample IDs and predictions
+prediction_df <- data.frame(
+  Sample = metadata$refinebio_accession_code,
+  NaiveBayes = all_predictions
+)
+
+# Display predictions
+print(prediction_df)
+```
