@@ -70,7 +70,7 @@ transposed_df_5000$Labels <- labels
 transposed_df_5000$Labels = as.factor(transposed_df_5000$Labels) 
 set.seed(123) # Set some seed for reproducibility
 # generating a random sample of rows for creating train dataset. Set 80% of n rows.
-sample_size <- floor(0.5 * nrow(transposed_df_5000))
+sample_size <- floor(0.6 * nrow(transposed_df_5000))
 # creating indices for training data
 train_ind <- sample(seq_len(nrow(transposed_df_5000)), size = sample_size)
 # Creating the training data
@@ -80,6 +80,7 @@ test_df <- transposed_df_5000[-train_ind, ]
 
 svm_model <- svm(Labels ~ ., data = train_df, kernel = "polynomial",  cost = 1, scale = TRUE)
 svm_predict_5000 <- predict(svm_model, test_df, type="response", decision.values = TRUE)
+
 
 svm_predict_vs_true_5000 <- data.frame(test_df$Labels, svm_predict_5000)
 
@@ -126,7 +127,7 @@ transposed_df_5000$Labels <- labels
 transposed_df_5000$Labels = as.factor(transposed_df_5000$Labels) 
 set.seed(123) # Set some seed for reproducibility
 # generating a random sample of rows for creating train dataset. Set 80% of n rows.
-sample_size <- floor(0.8 * nrow(transposed_df_5000))
+sample_size <- floor(0.6 * nrow(transposed_df_5000))
 # creating indices for training data
 train_ind <- sample(seq_len(nrow(transposed_df_5000)), size = sample_size)
 # Creating the training data
@@ -210,7 +211,7 @@ transposed_df_100$Labels <- labels
 transposed_df_100$Labels = as.factor(transposed_df_100$Labels) 
 set.seed(123) # Set some seed for reproducibility
 # generating a random sample of rows for creating train dataset. Set 80% of n rows.
-sample_size <- floor(0.5 * nrow(transposed_df_100))
+sample_size <- floor(0.6 * nrow(transposed_df_100))
 # creating indices for training data
 train_ind <- sample(seq_len(nrow(transposed_df_100)), size = sample_size)
 # Creating the training data
