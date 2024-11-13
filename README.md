@@ -1,4 +1,4 @@
-# Bioinformatics Research Topic: Distinguishing HAM/TSP pations from Controls and MS patients based on T-cell receptor signature.
+# Bioinformatics Research Topic: Distinguishing MS Patients from Controls based on T-cell receptor signature.
 
 ## Project Overview
 
